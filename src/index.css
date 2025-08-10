@@ -39,20 +39,25 @@ All colors MUST be HSL.
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Brand tokens */
+    --brand: 262 84% 62%;
+    --brand-foreground: 210 40% 98%;
+    --brand-muted: 262 84% 20%;
+
+    /* Gradients & effects */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--brand)), hsl(255 84% 70%));
+    --gradient-surface: linear-gradient(180deg, hsl(222.2 47.4% 6%), hsl(222.2 47.4% 4%));
+    --shadow-elevated: 0 10px 30px -10px hsl(var(--brand) / 0.35);
+    --shadow-glow: 0 0 40px hsl(var(--brand) / 0.45);
+    --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .dark {
@@ -91,6 +96,17 @@ All colors MUST be HSL.
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Brand (dark) */
+    --brand: 262 84% 62%;
+    --brand-foreground: 0 0% 100%;
+    --brand-muted: 260 84% 22%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(var(--brand)), hsl(260 84% 70%));
+    --gradient-surface: linear-gradient(180deg, hsl(222.2 47.4% 6%), hsl(222.2 47.4% 4%));
+    --shadow-elevated: 0 18px 35px -12px hsl(var(--brand) / 0.45);
+    --shadow-glow: 0 0 48px hsl(var(--brand) / 0.55);
+    --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
@@ -98,8 +114,31 @@ All colors MUST be HSL.
   * {
     @apply border-border;
   }
-
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .surface-card {
+    background: var(--gradient-surface);
+    box-shadow: var(--shadow-elevated);
+  }
+  .bg-gradient-brand {
+    background-image: var(--gradient-primary);
+  }
+  .interactive-spotlight {
+    position: relative;
+    isolation: isolate;
+  }
+  .interactive-spotlight::after {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    pointer-events: none;
+    background: radial-gradient(600px circle at var(--x,50%) var(--y,50%), hsl(var(--brand) / 0.12), transparent 40%);
+    border-radius: inherit;
+    z-index: -1;
+    transition: var(--transition-smooth);
   }
 }
