@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { supabase } from "@/integrations/supabase/client";
+import confetti from "canvas-confetti";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -26,7 +27,7 @@ import {
 
 const LOCAL_KEY_PREFIX = "intakeDraft:";
 
-export default function BrandingIntakeWizard() {
+export default function BrandingIntakeWizard({ onCompleted }: { onCompleted?: () => void }) {
   const { toast } = useToast();
   const [userId, setUserId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -71,7 +72,11 @@ export default function BrandingIntakeWizard() {
       const values = form.getValues();
       const { error } = await supabase.rpc("rpc_upsert_user_intake", { p_payload: values });
       if (error) throw error;
+      setSavedComplete(true);
+      confetti({ particleCount: 180, spread: 80, origin: { y: 0.6 } });
+      playChime();
       toast({ title: "Borrador guardado", description: "Se guardó en la nube." });
+      onCompleted?.();
     } catch (e: any) {
       toast({ title: "Error al guardar", description: e.message ?? "Intenta de nuevo", variant: "destructive" });
     } finally {
@@ -106,6 +111,26 @@ export default function BrandingIntakeWizard() {
     return `${bucket}/${path}`;
   };
 
+  const getVideoDuration = (file: File): Promise<number> =>
+    new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const video = document.createElement("video");
+      const onCleanup = () => {
+        URL.revokeObjectURL(url);
+        video.remove();
+      };
+      video.preload = "metadata";
+      video.src = url;
+      video.onloadedmetadata = () => {
+        const dur = video.duration;
+        onCleanup();
+        resolve(dur);
+      };
+      video.onerror = () => {
+        onCleanup();
+        reject(new Error("No se pudo leer la duración del video"));
+      };
+    });
   const onLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -130,6 +155,16 @@ export default function BrandingIntakeWizard() {
         toast({ title: "B-roll demasiado grande", description: `${file.name} supera 200MB`, variant: "destructive" });
         return;
       }
+      try {
+        const dur = await getVideoDuration(file);
+        if (dur > 15.0) {
+          toast({ title: "B-roll demasiado largo", description: `${file.name} dura ${Math.round(dur)}s (máx. 15s)`, variant: "destructive" });
+          return;
+        }
+      } catch {
+        toast({ title: "Error", description: `No se pudo leer duración de ${file.name}`, variant: "destructive" });
+        return;
+      }
     }
     try {
       const paths: string[] = [];
@@ -147,8 +182,24 @@ export default function BrandingIntakeWizard() {
 
   // Step helpers
   const totalSteps = 4;
-  const progress = Math.round(((step - 1) / totalSteps) * 100);
+  const [savedComplete, setSavedComplete] = useState(false);
+  const progress = savedComplete ? 100 : Math.round(((step - 1) / totalSteps) * 100);
 
+  const playChime = () => {
+    try {
+      const Ctx = (window as any).AudioContext || (window as any).webkitAudioContext;
+      const ctx = new Ctx();
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = 'triangle';
+      o.frequency.value = 880;
+      o.connect(g); g.connect(ctx.destination);
+      g.gain.setValueAtTime(0, ctx.currentTime);
+      g.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+      o.start(); o.stop(ctx.currentTime + 0.27);
+    } catch {}
+  };
   const fieldsByStep: Record<number, (keyof IntakeFormValues | string)[]> = {
     1: ["business.name", "business.website", "business.vertical", "business.geo", "business.brand_voice", "business.palette_hex"],
     2: ["goals.primary", "goals.kpis", "goals.cta.type", "goals.cta.text", "audience.who", "audience.age_range"],
@@ -160,15 +211,48 @@ export default function BrandingIntakeWizard() {
     const fields = fieldsByStep[step];
     const ok = await form.trigger(fields as any, { shouldFocus: true });
     if (!ok) return;
+    confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
+    playChime();
     setStep((s) => Math.min(totalSteps, s + 1));
   };
   const prevStep = () => setStep((s) => Math.max(1, s - 1));
 
-  const Summary = () => (
-    <pre className="text-sm bg-muted p-4 rounded-md overflow-x-auto animate-fade-in">
-      {JSON.stringify(form.getValues(), null, 2)}
-    </pre>
-  );
+  const Summary = () => {
+    const v = form.getValues();
+    return (
+      <div className="grid md:grid-cols-2 gap-4 text-sm animate-fade-in">
+        <div className="rounded-lg border border-border p-4">
+          <h4 className="font-medium mb-2">Negocio & Marca</h4>
+          <ul className="space-y-1 text-muted-foreground">
+            <li><strong>Nombre:</strong> {v.business.name || "—"}</li>
+            <li><strong>Web:</strong> {v.business.website || "—"}</li>
+            <li><strong>Industria:</strong> {v.business.vertical || "—"}</li>
+            <li><strong>Región:</strong> {v.business.geo || "—"}</li>
+            <li><strong>Tono:</strong> {v.business.brand_voice}</li>
+            <li><strong>Paleta:</strong> {v.business.palette_hex.join(", ")}</li>
+          </ul>
+        </div>
+        <div className="rounded-lg border border-border p-4">
+          <h4 className="font-medium mb-2">Objetivos & Audiencia</h4>
+          <ul className="space-y-1 text-muted-foreground">
+            <li><strong>Objetivo:</strong> {v.goals.primary}</li>
+            <li><strong>KPIs:</strong> {v.goals.kpis.join(", ")}</li>
+            <li><strong>CTA:</strong> {v.goals.cta.type} — {v.goals.cta.text}</li>
+            <li><strong>Audiencia:</strong> {v.audience.who || "—"}</li>
+            <li><strong>Edad:</strong> {v.audience.age_range || "—"} | <strong>Idioma:</strong> {v.audience.lang}</li>
+          </ul>
+        </div>
+        <div className="rounded-lg border border-border p-4 md:col-span-2">
+          <h4 className="font-medium mb-2">Contenido & Canales</h4>
+          <ul className="space-y-1 text-muted-foreground">
+            <li><strong>Duración:</strong> {v.content.duration_sec}s | <strong>Formato:</strong> {v.content.ratio}</li>
+            <li><strong>Canales:</strong> {v.content.channels.join(", ")}</li>
+            <li><strong>Estilo:</strong> {v.content.style}</li>
+          </ul>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-4 animate-enter">
