@@ -2,10 +2,10 @@ import { Link, NavLink } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Menu, CircleDollarSign } from "lucide-react";
-import { useState } from "react";
 import AdminPanel from "@/components/admin/AdminPanel";
+import { useCreditBalance } from "@/hooks/useCreditBalance";
 const AppShell = ({ children }: { children: React.ReactNode }) => {
-  const [credits] = useState<number>(3); // Mock inicial
+  const { balance, loading } = useCreditBalance();
 
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
     `px-3 py-2 rounded-md text-sm font-medium transition-colors ${
@@ -35,7 +35,7 @@ const AppShell = ({ children }: { children: React.ReactNode }) => {
           </nav>
           <div className="flex items-center gap-3">
             <Badge variant="secondary" className="border border-foreground/10">
-              Créditos: <span className="ml-1 font-semibold">{credits}</span>
+              Créditos: <span className="ml-1 font-semibold">{loading ? '—' : (balance ?? 0)}</span>
             </Badge>
             <Button variant="brand" size="sm" asChild>
               <Link to="/billing" aria-label="Ir a Billing">

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import SEO from "@/components/SEO";
 import { toast } from "@/hooks/use-toast";
 import { Sparkles, Film, UploadCloud } from "lucide-react";
-
+import { supabase } from "@/integrations/supabase/client";
 const Dashboard = () => {
   const [pointer, setPointer] = useState({ x: "50%", y: "50%" });
 
@@ -16,13 +16,21 @@ const Dashboard = () => {
     (e.currentTarget as HTMLDivElement).style.setProperty("--y", pointer.y);
   };
 
-  const handleGenerate = () => {
-    toast({
-      title: "Solicitud de video creada",
-      description: "Stub: conectaremos la Edge Function create_video_request tras vincular Supabase.",
-    });
-  };
+  const [generating, setGenerating] = useState(false);
 
+  const handleGenerate = async () => {
+    try {
+      setGenerating(true);
+      const { data, error } = await supabase.rpc('rpc_create_video_request');
+      if (error) {
+        toast({ title: 'No se pudo crear la solicitud', description: error.message });
+        return;
+      }
+      toast({ title: 'Solicitud creada', description: `ID: ${data}` });
+    } finally {
+      setGenerating(false);
+    }
+  };
   return (
     <>
       <SEO
@@ -48,8 +56,8 @@ const Dashboard = () => {
             Flujo con créditos, doble aprobación y exportación a IG/YouTube.
           </p>
           <div className="flex flex-wrap gap-3">
-            <Button variant="brand" onClick={handleGenerate}>
-              <Sparkles className="mr-2" /> Generar video
+            <Button variant="brand" onClick={handleGenerate} disabled={generating} aria-busy={generating}>
+              <Sparkles className="mr-2" /> {generating ? 'Generando…' : 'Generar video'}
             </Button>
             <Button variant="hero" asChild>
               <a href="#videos"> <Film className="mr-2" /> Ver mis videos</a>
