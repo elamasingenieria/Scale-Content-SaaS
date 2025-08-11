@@ -11,6 +11,7 @@ import VideoDetail from "./pages/VideoDetail";
 import Branding from "./pages/Branding";
 import Billing from "./pages/Billing";
 import Login from "./pages/Login";
+import Admin from "./pages/Admin";
 
 import RequireAuth from "@/components/auth/RequireAuth";
 
@@ -29,6 +30,7 @@ const App = () => (
           <Route path="/videos/:id" element={<RequireAuth><AppShell><VideoDetail /></AppShell></RequireAuth>} />
           <Route path="/branding" element={<RequireAuth><AppShell><Branding /></AppShell></RequireAuth>} />
           <Route path="/billing" element={<RequireAuth><AppShell><Billing /></AppShell></RequireAuth>} />
+          <Route path="/admin" element={<RequireAuth><AppShell><Admin /></AppShell></RequireAuth>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
