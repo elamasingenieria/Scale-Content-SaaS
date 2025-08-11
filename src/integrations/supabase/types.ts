@@ -183,6 +183,68 @@ export type Database = {
           },
         ]
       }
+      video_request_assets: {
+        Row: {
+          created_at: string
+          id: string
+          is_private: boolean
+          kind: Database["public"]["Enums"]["asset_kind_enum"]
+          metadata: Json | null
+          path: string
+          request_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_private?: boolean
+          kind: Database["public"]["Enums"]["asset_kind_enum"]
+          metadata?: Json | null
+          path: string
+          request_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_private?: boolean
+          kind?: Database["public"]["Enums"]["asset_kind_enum"]
+          metadata?: Json | null
+          path?: string
+          request_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_request_assets_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "video_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      video_requests: {
+        Row: {
+          created_at: string
+          id: string
+          status: Database["public"]["Enums"]["video_request_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          status?: Database["public"]["Enums"]["video_request_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          status?: Database["public"]["Enums"]["video_request_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       webhook_logs: {
         Row: {
           created_at: string
@@ -240,8 +302,21 @@ export type Database = {
         }
         Returns: boolean
       }
+      rpc_add_video_asset: {
+        Args: {
+          p_request_id: string
+          p_kind: Database["public"]["Enums"]["asset_kind_enum"]
+          p_path: string
+          p_metadata?: Json
+        }
+        Returns: string
+      }
       rpc_consume_credit_for_request: {
         Args: { p_user_id: string; p_request_id: string; p_note?: string }
+        Returns: string
+      }
+      rpc_create_video_request: {
+        Args: { p_user_id?: string }
         Returns: string
       }
       rpc_get_credit_balance: {
@@ -261,6 +336,14 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user" | "collab"
+      asset_kind_enum:
+        | "branding_logo"
+        | "branding_palette"
+        | "broll"
+        | "script"
+        | "edited_video"
+        | "thumbnail"
+        | "other"
       credit_source: "subscription" | "purchase"
       credit_source_enum:
         | "stripe_subscription"
@@ -270,6 +353,18 @@ export type Database = {
         | "admin_grant"
       payment_kind: "subscription" | "purchase"
       payment_kind_enum: "subscription" | "one_off"
+      video_request_status:
+        | "QUEUED"
+        | "IDEATION"
+        | "PRE_REVIEW_PENDING"
+        | "PRE_APPROVED"
+        | "GENERATING"
+        | "EDITING"
+        | "POST_REVIEW_PENDING"
+        | "POST_APPROVED"
+        | "READY"
+        | "EXPORTED"
+        | "FAILED"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -398,6 +493,15 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user", "collab"],
+      asset_kind_enum: [
+        "branding_logo",
+        "branding_palette",
+        "broll",
+        "script",
+        "edited_video",
+        "thumbnail",
+        "other",
+      ],
       credit_source: ["subscription", "purchase"],
       credit_source_enum: [
         "stripe_subscription",
@@ -408,6 +512,19 @@ export const Constants = {
       ],
       payment_kind: ["subscription", "purchase"],
       payment_kind_enum: ["subscription", "one_off"],
+      video_request_status: [
+        "QUEUED",
+        "IDEATION",
+        "PRE_REVIEW_PENDING",
+        "PRE_APPROVED",
+        "GENERATING",
+        "EDITING",
+        "POST_REVIEW_PENDING",
+        "POST_APPROVED",
+        "READY",
+        "EXPORTED",
+        "FAILED",
+      ],
     },
   },
 } as const

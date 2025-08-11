@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Menu, CircleDollarSign } from "lucide-react";
 import { useState } from "react";
-
+import AdminPanel from "@/components/admin/AdminPanel";
 const AppShell = ({ children }: { children: React.ReactNode }) => {
   const [credits] = useState<number>(3); // Mock inicial
 
@@ -46,6 +46,7 @@ const AppShell = ({ children }: { children: React.ReactNode }) => {
         </div>
       </header>
       <main className="container py-6">{children}</main>
+      <AdminPanel />
     </div>
   );
 };
