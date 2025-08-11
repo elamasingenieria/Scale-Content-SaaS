@@ -22,18 +22,16 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <AppShell>
-          <Routes>
-            <Route path="/" element={<RequireAuth><Index /></RequireAuth>} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/videos" element={<RequireAuth><Videos /></RequireAuth>} />
-            <Route path="/videos/:id" element={<RequireAuth><VideoDetail /></RequireAuth>} />
-            <Route path="/branding" element={<RequireAuth><Branding /></RequireAuth>} />
-            <Route path="/billing" element={<RequireAuth><Billing /></RequireAuth>} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AppShell>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/" element={<RequireAuth><AppShell><Index /></AppShell></RequireAuth>} />
+          <Route path="/videos" element={<RequireAuth><AppShell><Videos /></AppShell></RequireAuth>} />
+          <Route path="/videos/:id" element={<RequireAuth><AppShell><VideoDetail /></AppShell></RequireAuth>} />
+          <Route path="/branding" element={<RequireAuth><AppShell><Branding /></AppShell></RequireAuth>} />
+          <Route path="/billing" element={<RequireAuth><AppShell><Billing /></AppShell></RequireAuth>} />
+          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
