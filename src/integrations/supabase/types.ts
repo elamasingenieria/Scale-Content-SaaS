@@ -14,6 +14,95 @@ export type Database = {
   }
   public: {
     Tables: {
+      credits_ledger: {
+        Row: {
+          amount: number
+          created_at: string
+          event_id: string | null
+          id: string
+          note: string | null
+          payment_id: string | null
+          source: Database["public"]["Enums"]["credit_source"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          note?: string | null
+          payment_id?: string | null
+          source: Database["public"]["Enums"]["credit_source"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          note?: string | null
+          payment_id?: string | null
+          source?: Database["public"]["Enums"]["credit_source"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credits_ledger_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: true
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          currency: string
+          id: string
+          metadata: Json | null
+          payment_kind: Database["public"]["Enums"]["payment_kind"]
+          status: string
+          stripe_customer_id: string | null
+          stripe_event_id: string
+          stripe_object: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          currency?: string
+          id?: string
+          metadata?: Json | null
+          payment_kind: Database["public"]["Enums"]["payment_kind"]
+          status: string
+          stripe_customer_id?: string | null
+          stripe_event_id: string
+          stripe_object: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          metadata?: Json | null
+          payment_kind?: Database["public"]["Enums"]["payment_kind"]
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_event_id?: string
+          stripe_object?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -38,6 +127,27 @@ export type Database = {
           email?: string | null
           id?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      stripe_customers: {
+        Row: {
+          created_at: string
+          stripe_customer_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          stripe_customer_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          stripe_customer_id?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -72,7 +182,13 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      v_credit_balances: {
+        Row: {
+          balance: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
@@ -85,6 +201,8 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user" | "collab"
+      credit_source: "subscription" | "purchase"
+      payment_kind: "subscription" | "purchase"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -213,6 +331,8 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user", "collab"],
+      credit_source: ["subscription", "purchase"],
+      payment_kind: ["subscription", "purchase"],
     },
   },
 } as const
