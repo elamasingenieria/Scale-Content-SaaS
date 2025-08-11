@@ -32,6 +32,7 @@ const AppShell = ({ children }: { children: React.ReactNode }) => {
             </NavLink>
             <NavLink to="/videos" className={navLinkClass}>Videos</NavLink>
             <NavLink to="/branding" className={navLinkClass}>Branding</NavLink>
+            <NavLink to="/intake" className={navLinkClass}>Intake</NavLink>
             <NavLink to="/billing" className={navLinkClass}>Billing</NavLink>
             <NavLink to="/admin" className={navLinkClass}>Admin</NavLink>
           </nav>
