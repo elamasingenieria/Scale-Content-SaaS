@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      branding_assets: {
+        Row: {
+          created_at: string
+          id: string
+          metadata: Json | null
+          storage_path: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          storage_path: string
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          storage_path?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       credits_ledger: {
         Row: {
           amount: number
@@ -149,6 +179,27 @@ export type Database = {
         Update: {
           created_at?: string
           stripe_customer_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_intake: {
+        Row: {
+          created_at: string
+          payload: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          payload?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          payload?: Json
           updated_at?: string
           user_id?: string
         }
@@ -331,6 +382,14 @@ export type Database = {
           p_event_id: string
           p_note?: string
         }
+        Returns: string
+      }
+      rpc_register_branding_asset: {
+        Args: { p_type: string; p_storage_path: string; p_metadata?: Json }
+        Returns: string
+      }
+      rpc_upsert_user_intake: {
+        Args: { p_payload: Json }
         Returns: string
       }
     }
