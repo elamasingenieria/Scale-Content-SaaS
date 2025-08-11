@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Menu, CircleDollarSign } from "lucide-react";
 import AdminPanel from "@/components/admin/AdminPanel";
 import { useCreditBalance } from "@/hooks/useCreditBalance";
+
 const AppShell = ({ children }: { children: React.ReactNode }) => {
   const { balance, loading } = useCreditBalance();
 
