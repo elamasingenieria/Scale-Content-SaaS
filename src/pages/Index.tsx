@@ -57,6 +57,9 @@ const Dashboard = () => {
             <Button variant="outline" asChild>
               <a href="/branding"> <UploadCloud className="mr-2" /> Subir assets</a>
             </Button>
+            <Button variant="outline" asChild>
+              <a href="/login">Iniciar sesión</a>
+            </Button>
           </div>
         </div>
         <div className="rounded-xl p-6 border border-border bg-secondary/20">

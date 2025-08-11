@@ -12,6 +12,8 @@ import Branding from "./pages/Branding";
 import Billing from "./pages/Billing";
 import Login from "./pages/Login";
 
+import RequireAuth from "@/components/auth/RequireAuth";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -22,12 +24,12 @@ const App = () => (
       <BrowserRouter>
         <AppShell>
           <Routes>
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<RequireAuth><Index /></RequireAuth>} />
             <Route path="/login" element={<Login />} />
-            <Route path="/videos" element={<Videos />} />
-            <Route path="/videos/:id" element={<VideoDetail />} />
-            <Route path="/branding" element={<Branding />} />
-            <Route path="/billing" element={<Billing />} />
+            <Route path="/videos" element={<RequireAuth><Videos /></RequireAuth>} />
+            <Route path="/videos/:id" element={<RequireAuth><VideoDetail /></RequireAuth>} />
+            <Route path="/branding" element={<RequireAuth><Branding /></RequireAuth>} />
+            <Route path="/billing" element={<RequireAuth><Billing /></RequireAuth>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
