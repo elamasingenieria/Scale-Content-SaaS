@@ -22,7 +22,7 @@ export type Database = {
           id: string
           note: string | null
           payment_id: string | null
-          source: Database["public"]["Enums"]["credit_source"]
+          source: Database["public"]["Enums"]["credit_source_enum"]
           updated_at: string
           user_id: string
         }
@@ -33,7 +33,7 @@ export type Database = {
           id?: string
           note?: string | null
           payment_id?: string | null
-          source: Database["public"]["Enums"]["credit_source"]
+          source: Database["public"]["Enums"]["credit_source_enum"]
           updated_at?: string
           user_id: string
         }
@@ -44,7 +44,7 @@ export type Database = {
           id?: string
           note?: string | null
           payment_id?: string | null
-          source?: Database["public"]["Enums"]["credit_source"]
+          source?: Database["public"]["Enums"]["credit_source_enum"]
           updated_at?: string
           user_id?: string
         }
@@ -62,10 +62,11 @@ export type Database = {
         Row: {
           amount_cents: number
           created_at: string
+          credits_granted: number
           currency: string
           id: string
           metadata: Json | null
-          payment_kind: Database["public"]["Enums"]["payment_kind"]
+          payment_kind: Database["public"]["Enums"]["payment_kind_enum"]
           status: string
           stripe_customer_id: string | null
           stripe_event_id: string
@@ -76,10 +77,11 @@ export type Database = {
         Insert: {
           amount_cents: number
           created_at?: string
+          credits_granted?: number
           currency?: string
           id?: string
           metadata?: Json | null
-          payment_kind: Database["public"]["Enums"]["payment_kind"]
+          payment_kind: Database["public"]["Enums"]["payment_kind_enum"]
           status: string
           stripe_customer_id?: string | null
           stripe_event_id: string
@@ -90,10 +92,11 @@ export type Database = {
         Update: {
           amount_cents?: number
           created_at?: string
+          credits_granted?: number
           currency?: string
           id?: string
           metadata?: Json | null
-          payment_kind?: Database["public"]["Enums"]["payment_kind"]
+          payment_kind?: Database["public"]["Enums"]["payment_kind_enum"]
           status?: string
           stripe_customer_id?: string | null
           stripe_event_id?: string
@@ -180,6 +183,45 @@ export type Database = {
           },
         ]
       }
+      webhook_logs: {
+        Row: {
+          created_at: string
+          direction: string
+          error: string | null
+          event_type: string | null
+          id: string
+          idempotency_key: string | null
+          payload: Json | null
+          provider: string | null
+          request_id: string | null
+          status: number | null
+        }
+        Insert: {
+          created_at?: string
+          direction: string
+          error?: string | null
+          event_type?: string | null
+          id?: string
+          idempotency_key?: string | null
+          payload?: Json | null
+          provider?: string | null
+          request_id?: string | null
+          status?: number | null
+        }
+        Update: {
+          created_at?: string
+          direction?: string
+          error?: string | null
+          event_type?: string | null
+          id?: string
+          idempotency_key?: string | null
+          payload?: Json | null
+          provider?: string | null
+          request_id?: string | null
+          status?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       v_credit_balances: {
@@ -198,11 +240,36 @@ export type Database = {
         }
         Returns: boolean
       }
+      rpc_consume_credit_for_request: {
+        Args: { p_user_id: string; p_request_id: string; p_note?: string }
+        Returns: string
+      }
+      rpc_get_credit_balance: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      rpc_grant_credits: {
+        Args: {
+          p_user_id: string
+          p_amount: number
+          p_source: Database["public"]["Enums"]["credit_source_enum"]
+          p_event_id: string
+          p_note?: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       app_role: "admin" | "user" | "collab"
       credit_source: "subscription" | "purchase"
+      credit_source_enum:
+        | "stripe_subscription"
+        | "stripe_topup"
+        | "refund"
+        | "manual_adjustment"
+        | "admin_grant"
       payment_kind: "subscription" | "purchase"
+      payment_kind_enum: "subscription" | "one_off"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -332,7 +399,15 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "user", "collab"],
       credit_source: ["subscription", "purchase"],
+      credit_source_enum: [
+        "stripe_subscription",
+        "stripe_topup",
+        "refund",
+        "manual_adjustment",
+        "admin_grant",
+      ],
       payment_kind: ["subscription", "purchase"],
+      payment_kind_enum: ["subscription", "one_off"],
     },
   },
 } as const
