@@ -1,24 +1,32 @@
+import { useState } from "react";
 import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
+import BrandingIntakeWizard from "@/components/branding/BrandingIntakeWizard";
 
 const Branding = () => {
+  const [showWizard, setShowWizard] = useState(false);
+
   return (
     <>
       <SEO
-        title="Branding & Assets | UGC Flow"
-        description="Sube logos, paletas y b‑rolls (stub)."
+        title="Branding & Personalización | UGC Flow"
+        description="Sube assets y completa el formulario para personalización."
         canonical="/branding"
       />
-      <h1 className="text-xl font-semibold mb-4">Branding & Assets</h1>
-      <div className="rounded-xl border border-border p-6">
-        <p className="text-muted-foreground mb-3">
-          Stub: aquí conectaremos Supabase Storage con URLs firmadas.
-        </p>
-        <div className="flex gap-2">
-          <Button variant="brand">Subir logo</Button>
-          <Button variant="outline">Subir b‑roll</Button>
+
+      {!showWizard && (
+        <div className="rounded-xl border border-border p-6 animate-fade-in">
+          <h1 className="text-xl font-semibold mb-2">Branding & Assets</h1>
+          <p className="text-muted-foreground mb-4">
+            Carga tus logos y b‑rolls, y luego completa el formulario para personalizar tus videos.
+          </p>
+          <Button size="lg" className="hover-scale" onClick={() => setShowWizard(true)}>
+            Lanzar formulario
+          </Button>
         </div>
-      </div>
+      )}
+
+      {showWizard && <BrandingIntakeWizard />}
     </>
   );
 };
