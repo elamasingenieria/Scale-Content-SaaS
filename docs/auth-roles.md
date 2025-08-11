@@ -1,39 +1,30 @@
-# Autenticación (email + Google) y Roles (admin, user, collab)
+# Autenticación y Roles (MVP)
 
-Este documento resume las decisiones y el flujo implementado para Auth + Perfiles + Roles.
+Este módulo implementa:
+- Login y registro con email/contraseña y Google (Supabase Auth)
+- Perfiles (`public.profiles`) y roles por usuario (`public.user_roles`) con RLS segura
 
-## Flujo de alta (signup / login)
-- Email+contraseña: `signUp` con `emailRedirectTo = <SITE_URL>/` para confirmar correo; `signInWithPassword` para login.
-- Google (OAuth): `signInWithOAuth('google')` con `redirectTo = <SITE_URL>/`.
-- Al autenticarse, un trigger `public.handle_new_user` crea automáticamente el registro en `public.profiles` y asigna el rol por defecto `user` en `public.user_roles`.
+## Flujo de alta
+1. El usuario se registra (email+password o Google).
+2. Trigger `on_auth_user_created` inserta automáticamente su `profiles` y asigna rol por defecto `user` en `user_roles`.
+3. El usuario accede al dashboard tras confirmar email (si la confirmación está activa).
 
-## Perfiles y roles
-- `public.profiles (id uuid = auth.users.id, email, display_name, avatar_url, timestamps)`
-- `public.app_role` (enum): `admin | user | collab` (collab reservado para futuro)
-- `public.user_roles (user_id, role)` con `UNIQUE(user_id, role)`
-- Helper `public.has_role(user_id, role)` (SECURITY DEFINER) para usar en RLS sin recursión.
-
-## Reglas de acceso (RLS)
-- profiles
-  - SELECT: el propio usuario o `admin` → `auth.uid() = id OR has_role(auth.uid(),'admin')`
-  - INSERT/UPDATE: propio o `admin`
-- user_roles
-  - SELECT: propios roles o cualquiera si `admin`
-  - INSERT/UPDATE/DELETE: solo `admin`
-
-## ¿Cómo se determina el rol?
-- Por defecto todo usuario nuevo recibe `user` (trigger post-signup).
-- Para hacer admin a un usuario:
+## Determinación de rol
+- Por defecto: `user`.
+- Para promover a admin:
 ```sql
 insert into public.user_roles (user_id, role)
 values ('<USER_UUID>', 'admin')
 on conflict do nothing;
 ```
+- `collab` queda reservado para futuro.
 
-## Qué puede ver cada rol
-- user: solo su propio `profile` y sus propios `user_roles`.
-- admin: puede listar/leer todos los `profiles` y todos los `user_roles`; puede gestionar roles.
+## Visibilidad por rol (RLS)
+- Usuario autenticado: solo puede leer/actualizar su propio `profiles` y ver sus propios `user_roles`.
+- Admin: puede listar todos los perfiles y todos los roles; puede insertar/actualizar/borrar en `user_roles`.
 
-## Notas
-- Ajusta en Supabase Auth la configuración de Site URL/Redirect URL y el proveedor de Google.
-- Recomendación: si estás probando, puedes desactivar “Confirm email” temporalmente para acelerar el login.
+## Consideraciones
+- Google: habilitar el proveedor en Supabase (Auth > Providers) y añadir los Redirect URLs del sitio.
+- Email links: `emailRedirectTo` se establece a `window.location.origin/` en el FE.
+- Seguridad: RLS activo; función `public.has_role(uid, role)` evita recursión; triggers con `search_path` seguro.
+- Recomendación: revisar y ajustar la caducidad de OTP en Auth Settings (ver Supabase docs).

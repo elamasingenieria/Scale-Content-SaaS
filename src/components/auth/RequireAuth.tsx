@@ -1,27 +1,27 @@
 import { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
-import type { Session } from "@supabase/supabase-js";
+import { Navigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Props { children: React.ReactNode }
 
 const RequireAuth = ({ children }: Props) => {
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [checking, setChecking] = useState(true);
+  const [authenticated, setAuthenticated] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
+      setAuthenticated(!!session);
     });
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setLoading(false);
+      setAuthenticated(!!session);
+      setChecking(false);
     });
     return () => subscription.unsubscribe();
   }, []);
 
-  if (loading) return null;
-  if (!session) return <Navigate to="/login" replace />;
+  if (checking) return null;
+  if (!authenticated) return <Navigate to="/login" replace state={{ from: location }} />;
   return <>{children}</>;
 };
 
