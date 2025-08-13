@@ -52,12 +52,58 @@ export interface UGCFormData {
 }
 
 export interface N8NPayload {
+  idempotency_key: string;
   request_id: string;
   user_id: string;
-  video_count: number;
-  custom_instructions: string;
-  ugc_form_data: UGCFormData;
-  branding_assets: BrandingAsset[];
+  branding: {
+    logo_url?: string;
+    palette?: any;
+  };
+  brolls: string[];
+  ugc_brief: {
+    client_name: string;
+    cantidad_creadores: number;
+    especificaciones_creadores?: string;
+    video_duration: string;
+    video_duration_other?: string;
+    product_display_timing?: string;
+    recording_formats?: string[];
+    recording_formats_other?: string;
+    existing_script_links?: string;
+    delivery_deadline?: string;
+    app_parts_to_show?: string;
+    recording_locations?: string;
+    creator_clothing?: string;
+    creator_clothing_other?: string;
+    creator_appearance_style?: string;
+    creator_appearance_style_other?: string;
+    creator_activity_while_talking?: string;
+    app_display_method?: string;
+    script_adherence?: string;
+    creator_speech_style?: string;
+    brand_pronunciation_guide?: string;
+    main_objective?: string;
+    key_message?: string;
+    brand_values?: string;
+    target_audience?: string;
+    product_or_service?: string;
+    key_features_benefits?: string;
+    technical_details?: string;
+    video_tone?: string;
+    reference_ugc_videos?: string;
+    call_to_action?: string;
+    competitive_differentiators?: string;
+    additional_details?: string;
+  };
+  video_generation: {
+    video_count: number;
+    custom_instructions: string;
+    batch_id: string;
+  };
+  constraints: {
+    duration_sec: number;
+    ratio: string;
+  };
   webhook_url: string;
   created_at: string;
 }
@@ -120,6 +166,40 @@ export async function getBrandingAssetsWithSignedUrls(userId: string): Promise<B
 }
 
 /**
+ * Parse duration from UGC form to seconds
+ */
+function parseDuration(duration: string): number {
+  const durationMap: Record<string, number> = {
+    '15s': 15,
+    '30s': 30,
+    '60s': 60,
+    '90s': 90,
+    'custom': 60 // Default fallback
+  };
+  return durationMap[duration] || 60;
+}
+
+/**
+ * Parse ratio from recording formats
+ */
+function parseRatio(formats: string[] | null): string {
+  if (!formats || formats.length === 0) return '16:9';
+  
+  // Check if vertical formats are selected
+  if (formats.includes('Vertical (9:16)') || formats.includes('TikTok/Instagram Stories')) {
+    return '9:16';
+  }
+  
+  // Check if square format is selected
+  if (formats.includes('Square (1:1)') || formats.includes('Instagram Feed')) {
+    return '1:1';
+  }
+  
+  // Default to horizontal
+  return '16:9';
+}
+
+/**
  * Validate that all required data exists for video generation
  */
 export function validateVideoGenerationData(
@@ -167,13 +247,63 @@ export function buildN8NPayload(
   brandingAssets: BrandingAsset[],
   modalData: VideoGenerationModalData
 ): N8NPayload {
+  // Separate logo and b-rolls from branding assets
+  const logoAsset = brandingAssets.find(asset => asset.type === 'logo');
+  const brollAssets = brandingAssets.filter(asset => asset.type === 'broll' || asset.type === 'b-roll');
+  
   return {
+    idempotency_key: crypto.randomUUID(),
     request_id: requestId,
     user_id: userId,
-    video_count: modalData.videoCount,
-    custom_instructions: modalData.customInstructions,
-    ugc_form_data: ugcData,
-    branding_assets: brandingAssets,
+    branding: {
+      logo_url: logoAsset?.signed_url,
+      palette: logoAsset?.metadata?.palette
+    },
+    brolls: brollAssets.map(asset => asset.signed_url),
+    ugc_brief: {
+      client_name: ugcData.client_name,
+      cantidad_creadores: ugcData.cantidad_creadores,
+      especificaciones_creadores: ugcData.especificaciones_creadores,
+      video_duration: ugcData.video_duration,
+      video_duration_other: ugcData.video_duration_other,
+      product_display_timing: ugcData.product_display_timing,
+      recording_formats: ugcData.recording_formats,
+      recording_formats_other: ugcData.recording_formats_other,
+      existing_script_links: ugcData.existing_script_links,
+      delivery_deadline: ugcData.delivery_deadline,
+      app_parts_to_show: ugcData.app_parts_to_show,
+      recording_locations: ugcData.recording_locations,
+      creator_clothing: ugcData.creator_clothing,
+      creator_clothing_other: ugcData.creator_clothing_other,
+      creator_appearance_style: ugcData.creator_appearance_style,
+      creator_appearance_style_other: ugcData.creator_appearance_style_other,
+      creator_activity_while_talking: ugcData.creator_activity_while_talking,
+      app_display_method: ugcData.app_display_method,
+      script_adherence: ugcData.script_adherence,
+      creator_speech_style: ugcData.creator_speech_style,
+      brand_pronunciation_guide: ugcData.brand_pronunciation_guide,
+      main_objective: ugcData.main_objective,
+      key_message: ugcData.key_message,
+      brand_values: ugcData.brand_values,
+      target_audience: ugcData.target_audience,
+      product_or_service: ugcData.product_or_service,
+      key_features_benefits: ugcData.key_features_benefits,
+      technical_details: ugcData.technical_details,
+      video_tone: ugcData.video_tone,
+      reference_ugc_videos: ugcData.reference_ugc_videos,
+      call_to_action: ugcData.call_to_action,
+      competitive_differentiators: ugcData.competitive_differentiators,
+      additional_details: ugcData.additional_details
+    },
+    video_generation: {
+      video_count: modalData.videoCount,
+      custom_instructions: modalData.customInstructions,
+      batch_id: crypto.randomUUID()
+    },
+    constraints: {
+      duration_sec: parseDuration(ugcData.video_duration),
+      ratio: parseRatio(ugcData.recording_formats)
+    },
     webhook_url: 'https://devwebhookn8n.ezequiellamas.com/webhook/f4914fae-9e10-442f-88bc-f80ee2a5f244',
     created_at: new Date().toISOString()
   };
@@ -256,7 +386,7 @@ export async function sendToN8NWebhook(payload: N8NPayload): Promise<void> {
     
     toast({
       title: 'Videos enviados correctamente',
-      description: `Se están procesando ${payload.video_count} video(s). Te notificaremos cuando estén listos.`,
+      description: `Se están procesando ${payload.video_generation.video_count} video(s). Te notificaremos cuando estén listos.`,
     });
 
   } catch (error) {
