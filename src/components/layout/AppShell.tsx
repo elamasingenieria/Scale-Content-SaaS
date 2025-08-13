@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Menu, CircleDollarSign } from "lucide-react";
 import AdminPanel from "@/components/admin/AdminPanel";
 import { useCreditBalance } from "@/hooks/useCreditBalance";
+import UserMenu from "./UserMenu";
 
 const AppShell = ({ children }: { children: React.ReactNode }) => {
   const { balance, loading } = useCreditBalance();
@@ -45,6 +46,7 @@ const AppShell = ({ children }: { children: React.ReactNode }) => {
                 <CircleDollarSign className="mr-1" /> Comprar
               </Link>
             </Button>
+            <UserMenu />
           </div>
         </div>
       </header>
