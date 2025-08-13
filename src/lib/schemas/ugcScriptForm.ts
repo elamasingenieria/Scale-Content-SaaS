@@ -3,7 +3,8 @@ import { z } from "zod";
 export const ugcScriptFormSchema = z.object({
   // Datos del cliente
   client_name: z.string().min(1, "El nombre del cliente es requerido"),
-  creators_and_videos_count: z.string().min(1, "Especificar cantidad de creadores y videos es requerido"),
+  cantidad_creadores: z.number().min(1, "La cantidad de creadores es requerida").max(50, "Máximo 50 creadores"),
+  especificaciones_creadores: z.string().optional(),
 
   // Especificaciones del video
   video_duration: z.string().min(1, "La duración del video es requerida"),
@@ -54,7 +55,8 @@ export type UGCScriptFormData = z.infer<typeof ugcScriptFormSchema>;
 
 export const ugcScriptFormDefaults: UGCScriptFormData = {
   client_name: "",
-  creators_and_videos_count: "",
+  cantidad_creadores: 1,
+  especificaciones_creadores: "",
   video_duration: "",
   video_duration_other: "",
   product_display_timing: "",

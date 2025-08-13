@@ -211,16 +211,41 @@ export default function UGCScriptForm() {
 
                   <FormField
                     control={form.control}
-                    name="creators_and_videos_count"
+                    name="cantidad_creadores"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Cantidad de creadores y de videos *</FormLabel>
+                        <FormLabel>Cantidad de creadores *</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number"
+                            min={1}
+                            max={50}
+                            placeholder="Ej: 5"
+                            {...field}
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="especificaciones_creadores"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Especificaciones para los creadores</FormLabel>
                         <FormControl>
                           <Textarea 
-                            placeholder="Especificar género, países, etc."
+                            placeholder="Especifique género, edad, ubicación, características específicas, etc."
+                            maxLength={500}
                             {...field} 
                           />
                         </FormControl>
+                        <p className="text-xs text-muted-foreground">
+                          Describa cualquier requerimiento específico para los creadores (género, edad, ubicación, etc.)
+                        </p>
                         <FormMessage />
                       </FormItem>
                     )}
