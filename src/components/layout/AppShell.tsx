@@ -5,17 +5,21 @@ import { Menu, CircleDollarSign } from "lucide-react";
 import AdminPanel from "@/components/admin/AdminPanel";
 import { useCreditBalance } from "@/hooks/useCreditBalance";
 import UserMenu from "./UserMenu";
-
-const AppShell = ({ children }: { children: React.ReactNode }) => {
-  const { balance, loading } = useCreditBalance();
-
-  const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-    `px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-      isActive ? "text-brand" : "text-muted-foreground hover:text-foreground"
-    }`;
-
-  return (
-    <div className="min-h-screen bg-background text-foreground">
+const AppShell = ({
+  children
+}: {
+  children: React.ReactNode;
+}) => {
+  const {
+    balance,
+    loading
+  } = useCreditBalance();
+  const navLinkClass = ({
+    isActive
+  }: {
+    isActive: boolean;
+  }) => `px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive ? "text-brand" : "text-muted-foreground hover:text-foreground"}`;
+  return <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-40 border-b border-border/60 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-14 items-center justify-between">
           <div className="flex items-center gap-3">
@@ -39,12 +43,10 @@ const AppShell = ({ children }: { children: React.ReactNode }) => {
           </nav>
           <div className="flex items-center gap-3">
             <Badge variant="secondary" className="border border-foreground/10">
-              Créditos: <span className="ml-1 font-semibold">{loading ? '—' : (balance ?? 0)}</span>
+              Créditos: <span className="ml-1 font-semibold">{loading ? '—' : balance ?? 0}</span>
             </Badge>
             <Button variant="brand" size="sm" asChild>
-              <Link to="/billing" aria-label="Ir a Billing">
-                <CircleDollarSign className="mr-1" /> Comprar
-              </Link>
+              
             </Button>
             <UserMenu />
           </div>
@@ -52,8 +54,6 @@ const AppShell = ({ children }: { children: React.ReactNode }) => {
       </header>
       <main className="container py-6">{children}</main>
       <AdminPanel />
-    </div>
-  );
+    </div>;
 };
-
 export default AppShell;
