@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Menu, CircleDollarSign } from "lucide-react";
 import AdminPanel from "@/components/admin/AdminPanel";
 import { useCreditBalance } from "@/hooks/useCreditBalance";
+import { useAdminRole } from "@/hooks/useAdminRole";
 import UserMenu from "./UserMenu";
 const AppShell = ({
   children
@@ -14,6 +15,7 @@ const AppShell = ({
     balance,
     loading
   } = useCreditBalance();
+  const { isAdmin } = useAdminRole();
   const navLinkClass = ({
     isActive
   }: {
@@ -39,7 +41,7 @@ const AppShell = ({
             <NavLink to="/formularios" className={navLinkClass}>Formularios</NavLink>
             <NavLink to="/branding" className={navLinkClass}>Branding</NavLink>
             <NavLink to="/billing" className={navLinkClass}>Billing</NavLink>
-            <NavLink to="/admin" className={navLinkClass}>Admin</NavLink>
+            {isAdmin && <NavLink to="/admin" className={navLinkClass}>Admin</NavLink>}
           </nav>
           <div className="flex items-center gap-3">
             <Badge variant="secondary" className="border border-foreground/10">

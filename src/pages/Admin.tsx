@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,11 +13,43 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAdminRole } from "@/hooks/useAdminRole";
 
 const canonical = "/admin";
 
 const Admin = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { isAdmin, loading: adminLoading } = useAdminRole();
+
+  // Redirect non-admin users
+  useEffect(() => {
+    if (!adminLoading && !isAdmin) {
+      toast({
+        title: "Acceso denegado",
+        description: "Se requieren permisos de administrador",
+        variant: "destructive"
+      });
+      navigate("/");
+    }
+  }, [adminLoading, isAdmin, toast, navigate]);
+
+  // Show loading while checking permissions
+  if (adminLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-64">
+        <div className="text-center">
+          <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2"></div>
+          <p className="text-muted-foreground">Verificando permisos...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render admin content if not admin
+  if (!isAdmin) {
+    return null;
+  }
 
   // Asignación de créditos
   const [email, setEmail] = useState("");
