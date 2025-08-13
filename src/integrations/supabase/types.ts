@@ -184,6 +184,123 @@ export type Database = {
         }
         Relationships: []
       }
+      ugc_script_forms: {
+        Row: {
+          additional_details: string | null
+          app_display_method: string | null
+          app_parts_to_show: string | null
+          brand_pronunciation_guide: string | null
+          brand_values: string | null
+          call_to_action: string | null
+          client_name: string
+          competitive_differentiators: string | null
+          created_at: string
+          creator_activity_while_talking: string | null
+          creator_appearance_style: string | null
+          creator_appearance_style_other: string | null
+          creator_clothing: string | null
+          creator_clothing_other: string | null
+          creator_speech_style: string | null
+          creators_and_videos_count: string
+          delivery_deadline: string | null
+          existing_script_links: string | null
+          id: string
+          key_features_benefits: string | null
+          key_message: string | null
+          main_objective: string | null
+          product_display_timing: string | null
+          product_or_service: string | null
+          recording_formats: string[] | null
+          recording_formats_other: string | null
+          recording_locations: string | null
+          reference_ugc_videos: string | null
+          script_adherence: string | null
+          target_audience: string | null
+          technical_details: string | null
+          updated_at: string
+          user_id: string
+          video_duration: string
+          video_duration_other: string | null
+          video_tone: string | null
+        }
+        Insert: {
+          additional_details?: string | null
+          app_display_method?: string | null
+          app_parts_to_show?: string | null
+          brand_pronunciation_guide?: string | null
+          brand_values?: string | null
+          call_to_action?: string | null
+          client_name: string
+          competitive_differentiators?: string | null
+          created_at?: string
+          creator_activity_while_talking?: string | null
+          creator_appearance_style?: string | null
+          creator_appearance_style_other?: string | null
+          creator_clothing?: string | null
+          creator_clothing_other?: string | null
+          creator_speech_style?: string | null
+          creators_and_videos_count: string
+          delivery_deadline?: string | null
+          existing_script_links?: string | null
+          id?: string
+          key_features_benefits?: string | null
+          key_message?: string | null
+          main_objective?: string | null
+          product_display_timing?: string | null
+          product_or_service?: string | null
+          recording_formats?: string[] | null
+          recording_formats_other?: string | null
+          recording_locations?: string | null
+          reference_ugc_videos?: string | null
+          script_adherence?: string | null
+          target_audience?: string | null
+          technical_details?: string | null
+          updated_at?: string
+          user_id: string
+          video_duration: string
+          video_duration_other?: string | null
+          video_tone?: string | null
+        }
+        Update: {
+          additional_details?: string | null
+          app_display_method?: string | null
+          app_parts_to_show?: string | null
+          brand_pronunciation_guide?: string | null
+          brand_values?: string | null
+          call_to_action?: string | null
+          client_name?: string
+          competitive_differentiators?: string | null
+          created_at?: string
+          creator_activity_while_talking?: string | null
+          creator_appearance_style?: string | null
+          creator_appearance_style_other?: string | null
+          creator_clothing?: string | null
+          creator_clothing_other?: string | null
+          creator_speech_style?: string | null
+          creators_and_videos_count?: string
+          delivery_deadline?: string | null
+          existing_script_links?: string | null
+          id?: string
+          key_features_benefits?: string | null
+          key_message?: string | null
+          main_objective?: string | null
+          product_display_timing?: string | null
+          product_or_service?: string | null
+          recording_formats?: string[] | null
+          recording_formats_other?: string | null
+          recording_locations?: string | null
+          reference_ugc_videos?: string | null
+          script_adherence?: string | null
+          target_audience?: string | null
+          technical_details?: string | null
+          updated_at?: string
+          user_id?: string
+          video_duration?: string
+          video_duration_other?: string | null
+          video_tone?: string | null
+        }
+        Relationships: []
+      }
       user_intake: {
         Row: {
           completed_at: string | null
@@ -287,6 +404,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_social_links: {
+        Row: {
+          created_at: string
+          id: string
+          instagram_url: string | null
+          tiktok_url: string | null
+          updated_at: string
+          user_id: string
+          youtube_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          instagram_url?: string | null
+          tiktok_url?: string | null
+          updated_at?: string
+          user_id: string
+          youtube_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          instagram_url?: string | null
+          tiktok_url?: string | null
+          updated_at?: string
+          user_id?: string
+          youtube_url?: string | null
+        }
+        Relationships: []
       }
       video_request_assets: {
         Row: {
@@ -478,8 +625,20 @@ export type Database = {
         Args: { p_type: string; p_storage_path: string; p_metadata?: Json }
         Returns: string
       }
+      rpc_upsert_ugc_script_form: {
+        Args: { p_payload: Json }
+        Returns: string
+      }
       rpc_upsert_user_intake: {
         Args: { p_payload: Json }
+        Returns: string
+      }
+      rpc_upsert_user_social_links: {
+        Args: {
+          p_instagram_url?: string
+          p_tiktok_url?: string
+          p_youtube_url?: string
+        }
         Returns: string
       }
     }

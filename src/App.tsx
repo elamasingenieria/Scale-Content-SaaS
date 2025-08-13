@@ -12,6 +12,8 @@ import Branding from "./pages/Branding";
 import Billing from "./pages/Billing";
 import Login from "./pages/Login";
 import Admin from "./pages/Admin";
+import UGCScriptForm from "./pages/UGCScriptForm";
+import SocialLinksForm from "./pages/SocialLinksForm";
 
 
 
@@ -32,6 +34,8 @@ const App = () => (
           <Route path="/videos/:id" element={<RequireAuth><AppShell><VideoDetail /></AppShell></RequireAuth>} />
           <Route path="/branding" element={<RequireAuth><AppShell><Branding /></AppShell></RequireAuth>} />
           <Route path="/billing" element={<RequireAuth><AppShell><Billing /></AppShell></RequireAuth>} />
+          <Route path="/ugc-script-form" element={<RequireAuth><AppShell><UGCScriptForm /></AppShell></RequireAuth>} />
+          <Route path="/social-links" element={<RequireAuth><AppShell><SocialLinksForm /></AppShell></RequireAuth>} />
           
           <Route path="/admin" element={<RequireAuth><AppShell><Admin /></AppShell></RequireAuth>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
