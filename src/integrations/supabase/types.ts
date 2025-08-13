@@ -186,20 +186,74 @@ export type Database = {
       }
       user_intake: {
         Row: {
+          completed_at: string | null
           created_at: string
+          is_completed: boolean | null
+          metrics_scraped_at: string | null
           payload: Json
           updated_at: string
           user_id: string
         }
         Insert: {
+          completed_at?: string | null
           created_at?: string
+          is_completed?: boolean | null
+          metrics_scraped_at?: string | null
           payload?: Json
           updated_at?: string
           user_id: string
         }
         Update: {
+          completed_at?: string | null
           created_at?: string
+          is_completed?: boolean | null
+          metrics_scraped_at?: string | null
           payload?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_metrics: {
+        Row: {
+          avg_comments: number | null
+          avg_likes: number | null
+          created_at: string
+          engagement_rate: number | null
+          followers_count: number | null
+          handle: string
+          id: string
+          last_post_date: string | null
+          platform: Database["public"]["Enums"]["social_platform"]
+          posts_count: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avg_comments?: number | null
+          avg_likes?: number | null
+          created_at?: string
+          engagement_rate?: number | null
+          followers_count?: number | null
+          handle: string
+          id?: string
+          last_post_date?: string | null
+          platform: Database["public"]["Enums"]["social_platform"]
+          posts_count?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avg_comments?: number | null
+          avg_likes?: number | null
+          created_at?: string
+          engagement_rate?: number | null
+          followers_count?: number | null
+          handle?: string
+          id?: string
+          last_post_date?: string | null
+          platform?: Database["public"]["Enums"]["social_platform"]
+          posts_count?: number | null
           updated_at?: string
           user_id?: string
         }
@@ -307,7 +361,10 @@ export type Database = {
           payload: Json | null
           provider: string | null
           request_id: string | null
+          response_data: Json | null
           status: number | null
+          user_id: string | null
+          webhook_type: Database["public"]["Enums"]["webhook_type"] | null
         }
         Insert: {
           created_at?: string
@@ -319,7 +376,10 @@ export type Database = {
           payload?: Json | null
           provider?: string | null
           request_id?: string | null
+          response_data?: Json | null
           status?: number | null
+          user_id?: string | null
+          webhook_type?: Database["public"]["Enums"]["webhook_type"] | null
         }
         Update: {
           created_at?: string
@@ -331,7 +391,10 @@ export type Database = {
           payload?: Json | null
           provider?: string | null
           request_id?: string | null
+          response_data?: Json | null
           status?: number | null
+          user_id?: string | null
+          webhook_type?: Database["public"]["Enums"]["webhook_type"] | null
         }
         Relationships: []
       }
@@ -340,6 +403,15 @@ export type Database = {
       v_credit_balances: {
         Row: {
           balance: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
+      v_user_metrics_summary: {
+        Row: {
+          last_updated: string | null
+          platforms_count: number | null
+          platforms_data: Json | null
           user_id: string | null
         }
         Relationships: []
@@ -384,6 +456,24 @@ export type Database = {
         }
         Returns: string
       }
+      rpc_mark_intake_completed: {
+        Args: { p_user_id?: string }
+        Returns: boolean
+      }
+      rpc_record_user_metrics: {
+        Args: {
+          p_user_id: string
+          p_platform: Database["public"]["Enums"]["social_platform"]
+          p_handle: string
+          p_followers_count?: number
+          p_engagement_rate?: number
+          p_avg_likes?: number
+          p_avg_comments?: number
+          p_posts_count?: number
+          p_last_post_date?: string
+        }
+        Returns: string
+      }
       rpc_register_branding_asset: {
         Args: { p_type: string; p_storage_path: string; p_metadata?: Json }
         Returns: string
@@ -412,6 +502,12 @@ export type Database = {
         | "admin_grant"
       payment_kind: "subscription" | "purchase"
       payment_kind_enum: "subscription" | "one_off"
+      social_platform:
+        | "instagram"
+        | "youtube"
+        | "tiktok"
+        | "facebook"
+        | "twitter"
       video_request_status:
         | "QUEUED"
         | "IDEATION"
@@ -424,6 +520,11 @@ export type Database = {
         | "READY"
         | "EXPORTED"
         | "FAILED"
+      webhook_type:
+        | "metrics_scraping"
+        | "video_processing"
+        | "stripe_payment"
+        | "n8n_callback"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -571,6 +672,13 @@ export const Constants = {
       ],
       payment_kind: ["subscription", "purchase"],
       payment_kind_enum: ["subscription", "one_off"],
+      social_platform: [
+        "instagram",
+        "youtube",
+        "tiktok",
+        "facebook",
+        "twitter",
+      ],
       video_request_status: [
         "QUEUED",
         "IDEATION",
@@ -583,6 +691,12 @@ export const Constants = {
         "READY",
         "EXPORTED",
         "FAILED",
+      ],
+      webhook_type: [
+        "metrics_scraping",
+        "video_processing",
+        "stripe_payment",
+        "n8n_callback",
       ],
     },
   },
