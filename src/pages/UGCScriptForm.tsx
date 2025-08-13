@@ -19,6 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ugcScriptFormSchema, UGCScriptFormData, ugcScriptFormDefaults } from "@/lib/schemas/ugcScriptForm";
 import SEO from "@/components/SEO";
 
+// UGC Script Form - Cache refresh
 const LOCAL_STORAGE_KEY = "ugc-script-form-draft";
 
 export default function UGCScriptForm() {
