@@ -192,6 +192,7 @@ export type Database = {
           brand_pronunciation_guide: string | null
           brand_values: string | null
           call_to_action: string | null
+          cantidad_creadores: number | null
           client_name: string
           competitive_differentiators: string | null
           created_at: string
@@ -203,6 +204,7 @@ export type Database = {
           creator_speech_style: string | null
           creators_and_videos_count: string
           delivery_deadline: string | null
+          especificaciones_creadores: string | null
           existing_script_links: string | null
           id: string
           key_features_benefits: string | null
@@ -230,6 +232,7 @@ export type Database = {
           brand_pronunciation_guide?: string | null
           brand_values?: string | null
           call_to_action?: string | null
+          cantidad_creadores?: number | null
           client_name: string
           competitive_differentiators?: string | null
           created_at?: string
@@ -241,6 +244,7 @@ export type Database = {
           creator_speech_style?: string | null
           creators_and_videos_count: string
           delivery_deadline?: string | null
+          especificaciones_creadores?: string | null
           existing_script_links?: string | null
           id?: string
           key_features_benefits?: string | null
@@ -268,6 +272,7 @@ export type Database = {
           brand_pronunciation_guide?: string | null
           brand_values?: string | null
           call_to_action?: string | null
+          cantidad_creadores?: number | null
           client_name?: string
           competitive_differentiators?: string | null
           created_at?: string
@@ -279,6 +284,7 @@ export type Database = {
           creator_speech_style?: string | null
           creators_and_videos_count?: string
           delivery_deadline?: string | null
+          especificaciones_creadores?: string | null
           existing_script_links?: string | null
           id?: string
           key_features_benefits?: string | null
