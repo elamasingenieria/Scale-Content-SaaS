@@ -25,7 +25,11 @@ export default function SocialLinksForm() {
   useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      setUserId(user?.id || null);
+      if (user?.id) {
+        setUserId(user.id);
+        // Load existing data only after we have the user ID
+        loadExistingDataForUser(user.id);
+      }
     };
     getUser();
 
@@ -39,9 +43,6 @@ export default function SocialLinksForm() {
         console.error("Error loading draft:", error);
       }
     }
-
-    // Load existing data from database
-    loadExistingData();
   }, [form]);
 
   // Auto-save to localStorage every 30 seconds
@@ -54,14 +55,12 @@ export default function SocialLinksForm() {
     return () => clearInterval(interval);
   }, [form]);
 
-  const loadExistingData = async () => {
-    if (!userId) return;
-
+  const loadExistingDataForUser = async (userIdParam: string) => {
     try {
       const { data, error } = await supabase
         .from("user_social_links")
         .select("*")
-        .eq("user_id", userId)
+        .eq("user_id", userIdParam)
         .maybeSingle();
 
       if (error && error.code !== "PGRST116") {
@@ -74,6 +73,8 @@ export default function SocialLinksForm() {
           tiktok_url: data.tiktok_url || "",
           youtube_url: data.youtube_url || "",
         });
+        // Clear localStorage draft since we loaded from DB
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
       }
     } catch (error) {
       console.error("Error loading existing data:", error);
