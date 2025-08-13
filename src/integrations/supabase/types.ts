@@ -599,6 +599,17 @@ export type Database = {
         Args: { p_user_id: string; p_request_id: string; p_note?: string }
         Returns: string
       }
+      rpc_create_video_batch: {
+        Args: {
+          p_user_id: string
+          p_video_count: number
+          p_custom_instructions?: string
+          p_ugc_data?: Json
+          p_branding_assets?: Json
+          p_idempotency_key?: string
+        }
+        Returns: Json
+      }
       rpc_create_video_request: {
         Args: { p_user_id?: string }
         Returns: string

@@ -46,39 +46,78 @@ export function VideoGenerationModal({ open, onOpenChange }: VideoGenerationModa
         throw new Error("Usuario no autenticado");
       }
 
-      // 1. Collect all video generation data (UGC form, branding assets, modal inputs)
-      const videoGenerationPayload = await collectVideoGenerationData(userId, {
-        videoCount: videoCountNumber,
-        customInstructions: instructions.trim(),
+      // 1. Get branding assets with signed URLs directly
+      const { getBrandingAssetsWithSignedUrls } = await import('@/lib/services/videoGenerationService');
+      const brandingAssets = await getBrandingAssetsWithSignedUrls(userId);
+
+      // 2. Fetch UGC form data from database
+      const { data: ugcData, error: ugcError } = await supabase
+        .from('ugc_script_forms')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (ugcError) {
+        throw new Error('Error al obtener datos del formulario UGC');
+      }
+
+      if (!ugcData) {
+        throw new Error('No se encontraron datos del formulario UGC. Completa el formulario primero.');
+      }
+
+      // 3. Call Edge Function for atomic credit deduction and video request creation
+      const idempotencyKey = crypto.randomUUID();
+      
+      const { data, error } = await supabase.functions.invoke('create_video_request', {
+        body: {
+          userId: userId,
+          modalData: {
+            videoCount: videoCountNumber,
+            customInstructions: instructions.trim(),
+          },
+          ugcData: ugcData,
+          brandingAssets: brandingAssets,
+        },
+        headers: {
+          'Idempotency-Key': idempotencyKey,
+        }
       });
 
-      // 2. Create multiple video requests in database based on selected count
-      const promises = Array.from({ length: videoCountNumber }, async () => {
-        const { data, error } = await supabase.rpc('rpc_create_video_request');
-        if (error) throw error;
-        return data;
-      });
+      if (error) {
+        console.error('Edge function error:', error);
+        throw new Error(error.message || 'Error al procesar la solicitud');
+      }
 
-      const results = await Promise.all(promises);
-
-      // 3. Send collected data to n8n webhook for processing
-      await sendToN8NWebhook(videoGenerationPayload);
+      if (!data?.success) {
+        throw new Error(data?.error || 'Error al crear las solicitudes de video');
+      }
 
       // Success - close modal and reset form
       onOpenChange(false);
       setInstructions("");
       setVideoCount("1");
 
+      toast({
+        title: "Videos enviados correctamente",
+        description: data.message || `Se crearon ${videoCountNumber} solicitud(es) correctamente`,
+      });
+
     } catch (error: any) {
       console.error('Error in video generation flow:', error);
       
       // Error handling with user-friendly messages
-      let errorMessage = "No se pudieron procesar las solicitudes de video";
+      let errorMessage = "Error al procesar la solicitud. Sus créditos no fueron deducidos.";
       
-      if (error.message?.includes("formulario UGC")) {
+      if (error.message?.includes("Saldo insuficiente")) {
+        errorMessage = error.message;
+      } else if (error.message?.includes("formulario UGC")) {
         errorMessage = error.message;
       } else if (error.message?.includes("assets de marca")) {
         errorMessage = error.message;
+      } else if (error.message?.includes("duplicada")) {
+        errorMessage = "Solicitud duplicada detectada";
       } else if (error.message?.includes("HTTP")) {
         errorMessage = "Error de conexión con el servidor. Intenta nuevamente.";
       }

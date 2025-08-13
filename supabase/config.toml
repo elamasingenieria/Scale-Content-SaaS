@@ -1,4 +1,7 @@
 project_id = "isgyytimeqyxyokarrds"
 
+[functions.create_video_request]
+verify_jwt = true
+
 [functions.stripe_webhook]
 verify_jwt = false
