@@ -9,6 +9,7 @@ import { Loader2, AlertCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useCreditBalance } from "@/hooks/useCreditBalance";
+import { collectVideoGenerationData, sendToN8NWebhook } from "@/lib/services/videoGenerationService";
 
 interface VideoGenerationModalProps {
   open: boolean;
@@ -37,7 +38,21 @@ export function VideoGenerationModal({ open, onOpenChange }: VideoGenerationModa
 
     setIsGenerating(true);
     try {
-      // Create multiple video requests based on selected count
+      // Get current user ID
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id;
+
+      if (!userId) {
+        throw new Error("Usuario no autenticado");
+      }
+
+      // 1. Collect all video generation data (UGC form, branding assets, modal inputs)
+      const videoGenerationPayload = await collectVideoGenerationData(userId, {
+        videoCount: videoCountNumber,
+        customInstructions: instructions.trim(),
+      });
+
+      // 2. Create multiple video requests in database based on selected count
       const promises = Array.from({ length: videoCountNumber }, async () => {
         const { data, error } = await supabase.rpc('rpc_create_video_request');
         if (error) throw error;
@@ -45,19 +60,32 @@ export function VideoGenerationModal({ open, onOpenChange }: VideoGenerationModa
       });
 
       const results = await Promise.all(promises);
-      
-      toast({
-        title: "Videos solicitados",
-        description: `Se han creado ${videoCountNumber} solicitudes de video exitosamente.`,
-      });
 
+      // 3. Send collected data to n8n webhook for processing
+      await sendToN8NWebhook(videoGenerationPayload);
+
+      // Success - close modal and reset form
       onOpenChange(false);
       setInstructions("");
       setVideoCount("1");
+
     } catch (error: any) {
+      console.error('Error in video generation flow:', error);
+      
+      // Error handling with user-friendly messages
+      let errorMessage = "No se pudieron procesar las solicitudes de video";
+      
+      if (error.message?.includes("formulario UGC")) {
+        errorMessage = error.message;
+      } else if (error.message?.includes("assets de marca")) {
+        errorMessage = error.message;
+      } else if (error.message?.includes("HTTP")) {
+        errorMessage = "Error de conexión con el servidor. Intenta nuevamente.";
+      }
+
       toast({
-        title: "Error al crear solicitudes",
-        description: error.message || "No se pudieron crear las solicitudes de video",
+        title: "Error al generar videos",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
