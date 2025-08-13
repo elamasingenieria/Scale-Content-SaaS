@@ -7,6 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -155,6 +158,84 @@ const Admin = () => {
   const [n8nBody, setN8nBody] = useState<string>(JSON.stringify({ source: "admin-ui", ts: Date.now() }, null, 2));
   const [n8nLoading, setN8nLoading] = useState(false);
 
+  // Data viewers
+  const [webhookLogs, setWebhookLogs] = useState<any[]>([]);
+  const [payments, setPayments] = useState<any[]>([]);
+  const [userIntakes, setUserIntakes] = useState<any[]>([]);
+  const [searchEmail, setSearchEmail] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [loadingData, setLoadingData] = useState(false);
+
+  const loadWebhookLogs = async () => {
+    setLoadingData(true);
+    try {
+      let query = supabase
+        .from("webhook_logs")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(50);
+
+      if (statusFilter !== "all") {
+        query = query.eq("status", parseInt(statusFilter));
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      setWebhookLogs(data || []);
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setLoadingData(false);
+    }
+  };
+
+  const loadPayments = async () => {
+    setLoadingData(true);
+    try {
+      const { data, error } = await supabase
+        .from("payments")
+        .select("*, profiles!inner(email)")
+        .order("created_at", { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+      setPayments(data || []);
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setLoadingData(false);
+    }
+  };
+
+  const loadUserIntakes = async () => {
+    setLoadingData(true);
+    try {
+      let query = supabase
+        .from("user_intake")
+        .select("*, profiles!inner(email)")
+        .order("updated_at", { ascending: false })
+        .limit(50);
+
+      if (searchEmail) {
+        query = query.ilike("profiles.email", `%${searchEmail}%`);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      setUserIntakes(data || []);
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setLoadingData(false);
+    }
+  };
+
+  useEffect(() => {
+    loadWebhookLogs();
+    loadPayments();
+    loadUserIntakes();
+  }, [statusFilter, searchEmail]);
+
   const sendN8n = async () => {
     try {
       setN8nLoading(true);
@@ -190,7 +271,14 @@ const Admin = () => {
         <p className="text-sm text-muted-foreground">Gestión de créditos, pruebas de Stripe (MOCK) y webhook n8n.</p>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <Tabs defaultValue="tools" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="tools">Herramientas</TabsTrigger>
+          <TabsTrigger value="data">Datos</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="tools" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
             <CardTitle>Asignación de créditos</CardTitle>
@@ -283,8 +371,165 @@ const Admin = () => {
               {sendingMock ? "Enviando..." : "Emitir evento al webhook"}
             </Button>
           </CardContent>
-        </Card>
-      </div>
+          </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="data" className="space-y-6">
+          <div className="grid grid-cols-1 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Webhook Logs</CardTitle>
+                <div className="flex gap-2">
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-48">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos los estados</SelectItem>
+                      <SelectItem value="200">200 (OK)</SelectItem>
+                      <SelectItem value="400">400 (Bad Request)</SelectItem>
+                      <SelectItem value="500">500 (Error)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button onClick={loadWebhookLogs} disabled={loadingData}>
+                    Actualizar
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Fecha</TableHead>
+                      <TableHead>Dirección</TableHead>
+                      <TableHead>Evento</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Provider</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {webhookLogs.map((log) => (
+                      <TableRow key={log.id}>
+                        <TableCell>{new Date(log.created_at).toLocaleString()}</TableCell>
+                        <TableCell>
+                          <Badge variant={log.direction === "incoming" ? "default" : "secondary"}>
+                            {log.direction}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{log.event_type || "N/A"}</TableCell>
+                        <TableCell>
+                          <Badge variant={log.status >= 200 && log.status < 300 ? "default" : "destructive"}>
+                            {log.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{log.provider || "N/A"}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Pagos</CardTitle>
+                <Button onClick={loadPayments} disabled={loadingData}>
+                  Actualizar
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Fecha</TableHead>
+                      <TableHead>Usuario</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>Monto</TableHead>
+                      <TableHead>Créditos</TableHead>
+                      <TableHead>Estado</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {payments.map((payment) => (
+                      <TableRow key={payment.id}>
+                        <TableCell>{new Date(payment.created_at).toLocaleString()}</TableCell>
+                        <TableCell>{(payment.profiles as any)?.email || "N/A"}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{payment.payment_kind}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          {payment.currency.toUpperCase()} {(payment.amount_cents / 100).toFixed(2)}
+                        </TableCell>
+                        <TableCell>{payment.credits_granted}</TableCell>
+                        <TableCell>
+                          <Badge variant={payment.status === "succeeded" ? "default" : "secondary"}>
+                            {payment.status}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>User Intakes</CardTitle>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Buscar por email..."
+                    value={searchEmail}
+                    onChange={(e) => setSearchEmail(e.target.value)}
+                    className="max-w-sm"
+                  />
+                  <Button onClick={loadUserIntakes} disabled={loadingData}>
+                    Buscar
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Usuario</TableHead>
+                      <TableHead>Actualizado</TableHead>
+                      <TableHead>Completado</TableHead>
+                      <TableHead>Datos</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {userIntakes.map((intake) => (
+                      <TableRow key={intake.user_id}>
+                        <TableCell>{(intake.profiles as any)?.email || "N/A"}</TableCell>
+                        <TableCell>{new Date(intake.updated_at).toLocaleString()}</TableCell>
+                        <TableCell>
+                          <Badge variant={intake.payload?.completed ? "default" : "secondary"}>
+                            {intake.payload?.completed ? "Sí" : "No"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              navigator.clipboard.writeText(JSON.stringify(intake.payload, null, 2));
+                              toast({ title: "Copiado", description: "Datos del intake copiados al clipboard" });
+                            }}
+                          >
+                            Copiar JSON
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
     </>
   );
 };
