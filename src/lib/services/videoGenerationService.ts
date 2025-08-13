@@ -304,7 +304,7 @@ export function buildN8NPayload(
       duration_sec: parseDuration(ugcData.video_duration),
       ratio: parseRatio(ugcData.recording_formats)
     },
-    webhook_url: 'https://devwebhookn8n.ezequiellamas.com/webhook/f4914fae-9e10-442f-88bc-f80ee2a5f244',
+    webhook_url: '', // This will be set by the edge function
     created_at: new Date().toISOString()
   };
 }

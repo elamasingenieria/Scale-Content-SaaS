@@ -2,6 +2,7 @@ import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
+import { config } from "@/lib/config";
 
 const Billing = () => {
   useEffect(() => {
@@ -34,8 +35,8 @@ const Billing = () => {
           </ul>
           <div className="mt-2">
             <stripe-buy-button
-              buy-button-id="buy_btn_1RvNvYGW1LNDxvNyGrhXnkxR"
-              publishable-key="pk_test_51RuwgfGW1LNDxvNy44eI4OVLRAwpZT6NXtAx5ba0yXPzbGRSlL7dDGQJLjNqt2FzO38qbLYQlswiN69LTSrjh9xP00sxy2lLiu"
+              buy-button-id={config.stripe.buyButtons.subscription}
+              publishable-key={config.stripe.publishableKey}
             ></stripe-buy-button>
           </div>
           <p className="text-xs text-muted-foreground mt-2">Pagos en modo test de Stripe.</p>
@@ -47,8 +48,8 @@ const Billing = () => {
             <div>
               <p className="text-xs text-muted-foreground mb-1">Pack 10 créditos</p>
               <stripe-buy-button
-                buy-button-id="buy_btn_1RvOPaGW1LNDxvNyGD18efTA"
-                publishable-key="pk_test_51RuwgfGW1LNDxvNy44eI4OVLRAwpZT6NXtAx5ba0yXPzbGRSlL7dDGQJLjNqt2FzO38qbLYQlswiN69LTSrjh9xP00sxy2lLiu"
+                buy-button-id={config.stripe.buyButtons.credits10}
+                publishable-key={config.stripe.publishableKey}
               ></stripe-buy-button>
             </div>
             <div className="grid grid-cols-3 gap-2">

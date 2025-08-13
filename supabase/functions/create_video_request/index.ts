@@ -58,7 +58,20 @@ serve(async (req) => {
     console.log('Successfully created video batch:', result);
 
     // Send data to n8n webhook (fire-and-forget)
-    const webhookUrl = 'https://devwebhookn8n.ezequiellamas.com/webhook/f4914fae-9e10-442f-88bc-f80ee2a5f244';
+    const webhookUrl = Deno.env.get('N8N_WEBHOOK_URL');
+    
+    if (!webhookUrl) {
+      console.error('N8N_WEBHOOK_URL not configured');
+      // Still return success since credits were deducted and video request created
+      return new Response(JSON.stringify({ 
+        success: true, 
+        batch_id: result.batch_id,
+        requests: result.request_ids,
+        message: `Se crearon ${modalData.videoCount} solicitudes de video correctamente (webhook no configurado)`
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
     
     const n8nPayload = {
       idempotency_key: idempotencyKey,
