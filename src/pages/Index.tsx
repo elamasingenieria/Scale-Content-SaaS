@@ -1,8 +1,12 @@
+'use client'
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import SEO from "@/components/SEO";
 import { Sparkles, Film, UploadCloud } from "lucide-react";
 import { VideoGenerationModal } from "@/components/ui/VideoGenerationModal";
+import Link from "next/link";
+
 const Dashboard = () => {
   const [pointer, setPointer] = useState({ x: "50%", y: "50%" });
 
@@ -16,6 +20,7 @@ const Dashboard = () => {
   };
 
   const [showGenerationModal, setShowGenerationModal] = useState(false);
+  
   return (
     <>
       <SEO
@@ -41,14 +46,14 @@ const Dashboard = () => {
             Flujo con créditos, doble aprobación y exportación a IG/YouTube.
           </p>
           <div className="flex flex-wrap gap-3">
-            <Button variant="brand" onClick={() => setShowGenerationModal(true)}>
+            <Button variant="secondary" onClick={() => setShowGenerationModal(true)}>
               <Sparkles className="mr-2" /> Generar video
             </Button>
             <Button variant="hero" asChild>
-              <a href="#videos"> <Film className="mr-2" /> Ver mis videos</a>
+              <Link href="/videos"> <Film className="mr-2" /> Ver mis videos</Link>
             </Button>
             <Button variant="outline" asChild>
-              <a href="/branding"> <UploadCloud className="mr-2" /> Subir assets</a>
+              <Link href="/branding"> <UploadCloud className="mr-2" /> Subir assets</Link>
             </Button>
           </div>
         </div>
@@ -79,7 +84,7 @@ const Dashboard = () => {
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-medium">Últimas solicitudes</h2>
           <Button variant="ghost" asChild>
-            <a href="/videos">Ver todo</a>
+            <Link href="/videos">Ver todo</Link>
           </Button>
         </div>
         <div className="grid md:grid-cols-3 gap-4">
@@ -88,7 +93,7 @@ const Dashboard = () => {
               <div className="text-sm text-muted-foreground">Estado</div>
               <div className="font-semibold mb-2">{s}</div>
               <Button variant="outline" size="sm" asChild>
-                <a href={`/videos/${i + 1}`}>Abrir detalle</a>
+                <Link href={`/videos/${i + 1}`}>Abrir detalle</Link>
               </Button>
             </div>
           ))}

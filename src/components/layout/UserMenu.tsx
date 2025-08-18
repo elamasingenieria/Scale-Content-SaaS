@@ -1,6 +1,8 @@
-import { useState, useRef, useEffect } from 'react';
+'use client'
+
+import { useState } from 'react';
 import { User } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -80,7 +82,7 @@ const UserMenu = () => {
           </DropdownMenuItem>
           
           <DropdownMenuItem asChild>
-            <Link to="/billing">
+            <Link href="/billing">
               Facturación
             </Link>
           </DropdownMenuItem>

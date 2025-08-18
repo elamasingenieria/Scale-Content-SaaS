@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState } from "react";
 import SEO from "@/components/SEO";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";

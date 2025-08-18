@@ -1,3 +1,5 @@
+'use client'
+
 import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -5,10 +7,11 @@ import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const Login = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
@@ -16,13 +19,19 @@ const Login = () => {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) navigate("/", { replace: true });
+      if (session) {
+        const from = searchParams.get('from') || '/';
+        router.push(from);
+      }
     });
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) navigate("/", { replace: true });
+      if (session) {
+        const from = searchParams.get('from') || '/';
+        router.push(from);
+      }
     });
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [router, searchParams]);
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +50,8 @@ const Login = () => {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast({ title: "Sesión iniciada", description: "Bienvenido/a" });
-        navigate("/", { replace: true });
+        const from = searchParams.get('from') || '/';
+        router.push(from);
       }
     } catch (err: any) {
       toast({ title: "Error de autenticación", description: err.message });
@@ -83,7 +93,7 @@ const Login = () => {
           </p>
 
           <div className="grid gap-2 mb-4">
-            <Button variant="brand" onClick={handleGoogle} disabled={loading}>Continuar con Google</Button>
+            <Button variant="secondary" onClick={handleGoogle} disabled={loading}>Continuar con Google</Button>
           </div>
 
           <form onSubmit={handleEmailAuth} className="grid gap-3">

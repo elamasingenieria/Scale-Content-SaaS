@@ -1,4 +1,6 @@
-import { useEffect } from "react";
+'use client'
+
+import Head from "next/head";
 
 interface SEOProps {
   title: string;
@@ -8,42 +10,19 @@ interface SEOProps {
 }
 
 const SEO = ({ title, description, canonical = "/", jsonLd }: SEOProps) => {
-  useEffect(() => {
-    document.title = title;
-
-    const setMeta = (name: string, content: string) => {
-      let el = document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement | null;
-      if (!el) {
-        el = document.createElement("meta");
-        el.setAttribute("name", name);
-        document.head.appendChild(el);
-      }
-      el.setAttribute("content", content);
-    };
-
-    if (description) setMeta("description", description);
-
-    let link = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
-    if (!link) {
-      link = document.createElement("link");
-      link.setAttribute("rel", "canonical");
-      document.head.appendChild(link);
-    }
-    link.setAttribute("href", canonical);
-
-    // JSON-LD structured data
-    const existing = document.getElementById("jsonld-seo");
-    if (existing) existing.remove();
-    if (jsonLd) {
-      const script = document.createElement("script");
-      script.type = "application/ld+json";
-      script.id = "jsonld-seo";
-      script.text = JSON.stringify(jsonLd);
-      document.head.appendChild(script);
-    }
-  }, [title, description, canonical, jsonLd]);
-
-  return null;
+  return (
+    <Head>
+      <title>{title}</title>
+      {description && <meta name="description" content={description} />}
+      <link rel="canonical" href={canonical} />
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      )}
+    </Head>
+  );
 };
 
 export default SEO;

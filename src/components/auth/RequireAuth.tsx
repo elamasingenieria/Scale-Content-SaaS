@@ -1,13 +1,16 @@
+'use client'
+
 import { useEffect, useState } from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import { useRouter, usePathname } from "next/navigation";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Props { children: React.ReactNode }
 
-const RequireAuth = ({ children }: Props) => {
+export const RequireAuth = ({ children }: Props) => {
   const [checking, setChecking] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
-  const location = useLocation();
+  const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -20,8 +23,14 @@ const RequireAuth = ({ children }: Props) => {
     return () => subscription.unsubscribe();
   }, []);
 
+  useEffect(() => {
+    if (!checking && !authenticated) {
+      router.push(`/login?from=${encodeURIComponent(pathname)}`);
+    }
+  }, [checking, authenticated, router, pathname]);
+
   if (checking) return null;
-  if (!authenticated) return <Navigate to="/login" replace state={{ from: location }} />;
+  if (!authenticated) return null;
   return <>{children}</>;
 };
 
