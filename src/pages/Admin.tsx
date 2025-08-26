@@ -14,6 +14,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAdminRole } from "@/hooks/useAdminRole";
+import { WebhookMonitor } from "@/components/admin/WebhookMonitor";
+import { VideoRequestsAdmin } from "@/components/admin/VideoRequestsAdmin";
 
 const canonical = "/admin";
 
@@ -305,8 +307,10 @@ const Admin = () => {
       </header>
 
       <Tabs defaultValue="tools" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="tools">Herramientas</TabsTrigger>
+          <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
+          <TabsTrigger value="videos">Video Requests</TabsTrigger>
           <TabsTrigger value="data">Datos</TabsTrigger>
         </TabsList>
 
@@ -406,6 +410,14 @@ const Admin = () => {
           </CardContent>
           </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="webhooks" className="space-y-6">
+          <WebhookMonitor />
+        </TabsContent>
+
+        <TabsContent value="videos" className="space-y-6">
+          <VideoRequestsAdmin />
         </TabsContent>
 
         <TabsContent value="data" className="space-y-6">
