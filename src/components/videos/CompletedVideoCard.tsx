@@ -21,7 +21,14 @@ export function CompletedVideoCard({ userFile, onPlayVideo }: CompletedVideoCard
   };
 
   const handleDownload = () => {
-    window.open(userFile.public_url, '_blank');
+    const downloadUrl = userFile.signed_url || userFile.public_url;
+    window.open(downloadUrl, '_blank');
+  };
+
+  const formatFileSize = (bytes?: number) => {
+    if (!bytes) return '';
+    const mb = bytes / (1024 * 1024);
+    return mb > 1 ? `${mb.toFixed(1)} MB` : `${(bytes / 1024).toFixed(1)} KB`;
   };
 
   return (
@@ -38,10 +45,14 @@ export function CompletedVideoCard({ userFile, onPlayVideo }: CompletedVideoCard
       </CardHeader>
       
       <CardContent className="space-y-4">
-        <div className="text-sm text-muted-foreground">
-          <p>Completado: {formatDate(userFile.created_at)}</p>
+        <div className="text-sm text-muted-foreground space-y-1">
+          <p><strong>Archivo:</strong> {userFile.file_name}</p>
+          {userFile.file_size && (
+            <p><strong>Tamaño:</strong> {formatFileSize(userFile.file_size)}</p>
+          )}
+          <p><strong>Completado:</strong> {formatDate(userFile.created_at)}</p>
           {userFile.request_id && (
-            <p>ID de solicitud: {userFile.request_id.slice(0, 8)}...</p>
+            <p><strong>Solicitud:</strong> {userFile.request_id.slice(0, 8)}...</p>
           )}
         </div>
 

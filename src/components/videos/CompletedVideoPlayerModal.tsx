@@ -13,7 +13,8 @@ export function CompletedVideoPlayerModal({ isOpen, onClose, userFile }: Complet
   if (!userFile) return null;
 
   const handleDownload = () => {
-    window.open(userFile.public_url, '_blank');
+    const downloadUrl = userFile.signed_url || userFile.public_url;
+    window.open(downloadUrl, '_blank');
   };
 
   return (
@@ -48,7 +49,7 @@ export function CompletedVideoPlayerModal({ isOpen, onClose, userFile }: Complet
         
         <div className="aspect-video bg-black rounded-lg overflow-hidden">
           <video
-            src={userFile.public_url}
+            src={userFile.signed_url || userFile.public_url}
             controls
             className="w-full h-full object-contain"
             preload="metadata"
@@ -57,8 +58,9 @@ export function CompletedVideoPlayerModal({ isOpen, onClose, userFile }: Complet
           </video>
         </div>
         
-        <div className="text-sm text-muted-foreground mt-4">
-          <p>Completado: {new Date(userFile.created_at).toLocaleDateString('es-ES', {
+        <div className="text-sm text-muted-foreground mt-4 space-y-1">
+          <p><strong>Archivo:</strong> {userFile.file_name}</p>
+          <p><strong>Completado:</strong> {new Date(userFile.created_at).toLocaleDateString('es-ES', {
             year: 'numeric',
             month: 'long',
             day: 'numeric',
@@ -66,7 +68,7 @@ export function CompletedVideoPlayerModal({ isOpen, onClose, userFile }: Complet
             minute: '2-digit'
           })}</p>
           {userFile.request_id && (
-            <p>ID de solicitud: {userFile.request_id}</p>
+            <p><strong>ID de solicitud:</strong> {userFile.request_id}</p>
           )}
         </div>
       </DialogContent>
