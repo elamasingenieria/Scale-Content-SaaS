@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "13.0.4"
@@ -498,21 +498,33 @@ export type Database = {
       video_requests: {
         Row: {
           created_at: string
+          failure_count: number | null
+          failure_reason: string | null
           id: string
+          last_webhook_received_at: string | null
+          processing_started_at: string | null
           status: Database["public"]["Enums"]["video_request_status"]
           updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          failure_count?: number | null
+          failure_reason?: string | null
           id?: string
+          last_webhook_received_at?: string | null
+          processing_started_at?: string | null
           status?: Database["public"]["Enums"]["video_request_status"]
           updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
+          failure_count?: number | null
+          failure_reason?: string | null
           id?: string
+          last_webhook_received_at?: string | null
+          processing_started_at?: string | null
           status?: Database["public"]["Enums"]["video_request_status"]
           updated_at?: string
           user_id?: string
@@ -525,12 +537,15 @@ export type Database = {
           direction: string
           error: string | null
           event_type: string | null
+          execution_time_ms: number | null
           id: string
           idempotency_key: string | null
           payload: Json | null
           provider: string | null
           request_id: string | null
+          request_size_bytes: number | null
           response_data: Json | null
+          response_headers: Json | null
           status: number | null
           user_id: string | null
           webhook_type: Database["public"]["Enums"]["webhook_type"] | null
@@ -540,12 +555,15 @@ export type Database = {
           direction: string
           error?: string | null
           event_type?: string | null
+          execution_time_ms?: number | null
           id?: string
           idempotency_key?: string | null
           payload?: Json | null
           provider?: string | null
           request_id?: string | null
+          request_size_bytes?: number | null
           response_data?: Json | null
+          response_headers?: Json | null
           status?: number | null
           user_id?: string | null
           webhook_type?: Database["public"]["Enums"]["webhook_type"] | null
@@ -555,12 +573,15 @@ export type Database = {
           direction?: string
           error?: string | null
           event_type?: string | null
+          execution_time_ms?: number | null
           id?: string
           idempotency_key?: string | null
           payload?: Json | null
           provider?: string | null
           request_id?: string | null
+          request_size_bytes?: number | null
           response_data?: Json | null
+          response_headers?: Json | null
           status?: number | null
           user_id?: string | null
           webhook_type?: Database["public"]["Enums"]["webhook_type"] | null
@@ -589,32 +610,32 @@ export type Database = {
     Functions: {
       has_role: {
         Args: {
-          _user_id: string
           _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
         }
         Returns: boolean
       }
       rpc_add_video_asset: {
         Args: {
-          p_request_id: string
           p_kind: Database["public"]["Enums"]["asset_kind_enum"]
-          p_path: string
           p_metadata?: Json
+          p_path: string
+          p_request_id: string
         }
         Returns: string
       }
       rpc_consume_credit_for_request: {
-        Args: { p_user_id: string; p_request_id: string; p_note?: string }
+        Args: { p_note?: string; p_request_id: string; p_user_id: string }
         Returns: string
       }
       rpc_create_video_batch: {
         Args: {
+          p_branding_assets?: Json
+          p_custom_instructions?: string
+          p_idempotency_key?: string
+          p_ugc_data?: Json
           p_user_id: string
           p_video_count: number
-          p_custom_instructions?: string
-          p_ugc_data?: Json
-          p_branding_assets?: Json
-          p_idempotency_key?: string
         }
         Returns: Json
       }
@@ -628,11 +649,11 @@ export type Database = {
       }
       rpc_grant_credits: {
         Args: {
-          p_user_id: string
           p_amount: number
-          p_source: Database["public"]["Enums"]["credit_source_enum"]
           p_event_id: string
           p_note?: string
+          p_source: Database["public"]["Enums"]["credit_source_enum"]
+          p_user_id: string
         }
         Returns: string
       }
@@ -642,20 +663,20 @@ export type Database = {
       }
       rpc_record_user_metrics: {
         Args: {
-          p_user_id: string
-          p_platform: Database["public"]["Enums"]["social_platform"]
-          p_handle: string
-          p_followers_count?: number
-          p_engagement_rate?: number
-          p_avg_likes?: number
           p_avg_comments?: number
-          p_posts_count?: number
+          p_avg_likes?: number
+          p_engagement_rate?: number
+          p_followers_count?: number
+          p_handle: string
           p_last_post_date?: string
+          p_platform: Database["public"]["Enums"]["social_platform"]
+          p_posts_count?: number
+          p_user_id: string
         }
         Returns: string
       }
       rpc_register_branding_asset: {
-        Args: { p_type: string; p_storage_path: string; p_metadata?: Json }
+        Args: { p_metadata?: Json; p_storage_path: string; p_type: string }
         Returns: string
       }
       rpc_upsert_ugc_script_form: {

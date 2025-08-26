@@ -6,5 +6,8 @@ verify_jwt = true
 [functions.receive_video_webhook]
 verify_jwt = false
 
+[functions.debug_webhook]
+verify_jwt = false
+
 [functions.stripe_webhook]
 verify_jwt = false
