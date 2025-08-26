@@ -70,7 +70,14 @@ const FileUpload = () => {
     if (e.type === "dragenter" || e.type === "dragover") {
       setDragActive(true);
     } else if (e.type === "dragleave") {
-      setDragActive(false);
+      // Only set dragActive to false if we're leaving the entire drop area
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = e.clientX;
+      const y = e.clientY;
+      
+      if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
+        setDragActive(false);
+      }
     }
   }, []);
 
@@ -85,7 +92,16 @@ const FileUpload = () => {
   }, []);
 
   const handleFiles = async (fileList: File[]) => {
-    if (!userId) return;
+    if (!userId) {
+      toast({
+        title: "Error",
+        description: "Usuario no autenticado. Inicia sesión para subir archivos.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (fileList.length === 0) return;
 
     const validFiles = fileList.filter((file) => {
       const isValidType = file.type.startsWith("image/") || file.type.startsWith("video/");
@@ -94,7 +110,7 @@ const FileUpload = () => {
       if (!isValidType) {
         toast({
           title: "Tipo de archivo no válido",
-          description: `${file.name} no es un archivo de imagen o video`,
+          description: `${file.name} no es un archivo de imagen o video válido`,
           variant: "destructive",
         });
         return false;
@@ -112,21 +128,41 @@ const FileUpload = () => {
       return true;
     });
 
+    if (validFiles.length === 0) {
+      toast({
+        title: "Sin archivos válidos",
+        description: "No se encontraron archivos válidos para subir",
+        variant: "destructive",
+      });
+      return;
+    }
+
     for (const file of validFiles) {
       setUploading((prev) => [...prev, file.name]);
 
       try {
         const bucket = file.type.startsWith("image/") ? "branding" : "brolls";
-        const filePath = `${userId}/${Date.now()}-${file.name}`;
+        const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+        const filePath = `${userId}/${Date.now()}-${sanitizedFileName}`;
+
+        console.log(`Uploading file ${file.name} to ${bucket}/${filePath}`);
 
         const { error: uploadError } = await supabase.storage
           .from(bucket)
-          .upload(filePath, file);
+          .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: false
+          });
 
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+          console.error("Storage upload error:", uploadError);
+          throw uploadError;
+        }
 
         // Register in branding_assets table
         const assetType = file.type.startsWith("image/") ? "logo" : "broll";
+        console.log(`Registering asset with type: ${assetType}, path: ${bucket}/${filePath}`);
+        
         const { error: dbError } = await supabase.rpc("rpc_register_branding_asset", {
           p_type: assetType,
           p_storage_path: `${bucket}/${filePath}`,
@@ -134,29 +170,39 @@ const FileUpload = () => {
             size: file.size,
             type: file.type,
             name: file.name,
+            original_name: file.name
           },
         });
 
-        if (dbError) throw dbError;
+        if (dbError) {
+          console.error("Database registration error:", dbError);
+          // If DB registration fails, clean up the uploaded file
+          await supabase.storage.from(bucket).remove([filePath]);
+          throw dbError;
+        }
 
-        // Remove from uploading and reload files
-        setUploading((prev) => prev.filter((name) => name !== file.name));
-        await loadUserFiles(userId);
+        console.log(`Successfully uploaded and registered: ${file.name}`);
 
         toast({
-          title: "Archivo subido",
+          title: "Archivo subido exitosamente",
           description: `${file.name} se ha subido correctamente`,
         });
+
       } catch (error: any) {
-        console.error("Upload error:", error);
-        setUploading((prev) => prev.filter((name) => name !== file.name));
+        console.error("Upload error for file", file.name, ":", error);
         toast({
           title: "Error de subida",
           description: error.message || `No se pudo subir ${file.name}`,
           variant: "destructive",
         });
+      } finally {
+        // Always remove from uploading state
+        setUploading((prev) => prev.filter((name) => name !== file.name));
       }
     }
+
+    // Reload files after all uploads complete
+    await loadUserFiles(userId);
   };
 
   const deleteFile = async (fileItem: FileUploadItem) => {
@@ -216,15 +262,16 @@ const FileUpload = () => {
     <div className="space-y-6">
       {/* Drag & Drop Area */}
       <Card 
-        className={`transition-colors duration-200 ${
+        className={`cursor-pointer transition-all duration-200 ${
           dragActive 
-            ? "border-primary bg-primary/5" 
-            : "border-dashed border-border hover:border-primary/50"
+            ? "border-primary bg-primary/5 scale-[1.02]" 
+            : "border-dashed border-border hover:border-primary/50 hover:bg-muted/30"
         }`}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
         onDrop={handleDrop}
+        onClick={() => fileInputRef.current?.click()}
       >
         <CardContent className="p-12 text-center">
           <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
