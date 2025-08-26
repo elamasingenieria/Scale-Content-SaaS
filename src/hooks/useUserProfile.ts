@@ -9,14 +9,18 @@ export const useUserProfile = () => {
     // Get current user ID
     const getCurrentUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      setUserId(session?.user?.id || null);
+      const userId = session?.user?.id || null;
+      console.log('useUserProfile: Initial session check, userId:', userId);
+      setUserId(userId);
     };
 
     getCurrentUser();
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUserId(session?.user?.id || null);
+      const userId = session?.user?.id || null;
+      console.log('useUserProfile: Auth state change:', { event, userId });
+      setUserId(userId);
     });
 
     return () => subscription.unsubscribe();
@@ -41,7 +45,7 @@ export const useUserProfile = () => {
 
   return {
     profile,
-    loading: isLoading,
+    loading: isLoading || userId === null, // Include userId loading state
     error,
     refetch,
     userId,
