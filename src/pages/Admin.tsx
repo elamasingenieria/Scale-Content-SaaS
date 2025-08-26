@@ -24,6 +24,32 @@ const Admin = () => {
   const navigate = useNavigate();
   const { isAdmin, loading: adminLoading } = useAdminRole();
 
+  // ALL HOOKS MUST BE DECLARED BEFORE ANY CONDITIONAL RETURNS
+  // Asignación de créditos
+  const [email, setEmail] = useState("");
+  const [grantAmount, setGrantAmount] = useState<number>(10);
+  const [grantLoading, setGrantLoading] = useState(false);
+
+  // Emisor de eventos Stripe (MOCK)
+  const [eventType, setEventType] = useState<string>("checkout.session.completed");
+  const [customerEmail, setCustomerEmail] = useState<string>("");
+  const [creditsPack, setCreditsPack] = useState<number>(10);
+  const [amountCents, setAmountCents] = useState<number>(999);
+  const [payloadPreview, setPayloadPreview] = useState<string>("");
+  const [sendingMock, setSendingMock] = useState(false);
+
+  // Test webhook de n8n
+  const [n8nBody, setN8nBody] = useState<string>(JSON.stringify({ source: "admin-ui", ts: Date.now() }, null, 2));
+  const [n8nLoading, setN8nLoading] = useState(false);
+
+  // Data viewers
+  const [webhookLogs, setWebhookLogs] = useState<any[]>([]);
+  const [payments, setPayments] = useState<any[]>([]);
+  const [userIntakes, setUserIntakes] = useState<any[]>([]);
+  const [searchEmail, setSearchEmail] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [loadingData, setLoadingData] = useState(false);
+
   // Redirect non-admin users
   useEffect(() => {
     if (!adminLoading && !isAdmin) {
@@ -52,11 +78,6 @@ const Admin = () => {
   if (!isAdmin) {
     return null;
   }
-
-  // Asignación de créditos
-  const [email, setEmail] = useState("");
-  const [grantAmount, setGrantAmount] = useState<number>(10);
-  const [grantLoading, setGrantLoading] = useState(false);
 
   const grantCredits = async () => {
     try {
@@ -89,14 +110,7 @@ const Admin = () => {
     }
   };
 
-  // Emisor de eventos Stripe (MOCK)
-  const [eventType, setEventType] = useState<string>("checkout.session.completed");
-  const [customerEmail, setCustomerEmail] = useState<string>("");
-  const [creditsPack, setCreditsPack] = useState<number>(10);
-  const [amountCents, setAmountCents] = useState<number>(999);
-  const [payloadPreview, setPayloadPreview] = useState<string>("");
-  const [sendingMock, setSendingMock] = useState(false);
-
+  // Emisor de eventos Stripe (MOCK) - functions
   const buildMockEvent = (): any => {
     const id = `evt_mock_${Date.now()}`;
     const created = Math.floor(Date.now() / 1000);
@@ -188,18 +202,10 @@ const Admin = () => {
     }
   };
 
-  // Test webhook de n8n
+  // Test webhook de n8n - URL constant
   const n8nUrl = "https://devwebhookn8n.ezequiellamas.com/webhook/f4914fae-9e10-442f-88bc-f80ee2a5f244";
-  const [n8nBody, setN8nBody] = useState<string>(JSON.stringify({ source: "admin-ui", ts: Date.now() }, null, 2));
-  const [n8nLoading, setN8nLoading] = useState(false);
 
-  // Data viewers
-  const [webhookLogs, setWebhookLogs] = useState<any[]>([]);
-  const [payments, setPayments] = useState<any[]>([]);
-  const [userIntakes, setUserIntakes] = useState<any[]>([]);
-  const [searchEmail, setSearchEmail] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [loadingData, setLoadingData] = useState(false);
+  // Data loading functions
 
   const loadWebhookLogs = async () => {
     setLoadingData(true);
