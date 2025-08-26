@@ -1,6 +1,14 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
+// Webhook types constants
+const WEBHOOK_TYPES = {
+  VIDEO_GENERATION_REQUEST: 'video_generation_request',
+  VIDEO_STATUS_UPDATE: 'video_status_update',
+  STRIPE_PAYMENT: 'stripe_payment',
+  ADMIN_TEST: 'admin_test'
+} as const;
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-webhook-secret',
@@ -125,7 +133,7 @@ serve(async (req) => {
     await logWebhookCall(
       supabase, 
       'incoming', 
-      'video_status_update', 
+      WEBHOOK_TYPES.VIDEO_STATUS_UPDATE, 
       200, 
       payload, 
       null, 
@@ -139,7 +147,7 @@ serve(async (req) => {
       const error = 'Missing required fields: request_id or status';
       console.error(`[${requestId}] ${error}`);
       
-      await logWebhookCall(supabase, 'incoming', 'video_status_update', 400, payload, null, error);
+      await logWebhookCall(supabase, 'incoming', WEBHOOK_TYPES.VIDEO_STATUS_UPDATE, 400, payload, null, error);
       
       return new Response(JSON.stringify({ error }), {
         status: 400,
@@ -160,7 +168,7 @@ serve(async (req) => {
       const error = `Video request not found: ${payload.request_id}`;
       console.error(`[${requestId}] ${error}`, fetchError);
       
-      await logWebhookCall(supabase, 'incoming', 'video_status_update', 404, payload, null, error);
+      await logWebhookCall(supabase, 'incoming', WEBHOOK_TYPES.VIDEO_STATUS_UPDATE, 404, payload, null, error);
       
       return new Response(JSON.stringify({ error: 'Video request not found' }), {
         status: 404,
@@ -323,7 +331,7 @@ serve(async (req) => {
     await logWebhookCall(
       supabase, 
       'incoming', 
-      'video_status_update', 
+      WEBHOOK_TYPES.VIDEO_STATUS_UPDATE, 
       200, 
       payload, 
       { success: true, request_id: payload.request_id, status: payload.status }, 
@@ -352,7 +360,7 @@ serve(async (req) => {
       await logWebhookCall(
         supabase, 
         'incoming', 
-        'video_status_update', 
+        WEBHOOK_TYPES.VIDEO_STATUS_UPDATE, 
         500, 
         payload, 
         null, 

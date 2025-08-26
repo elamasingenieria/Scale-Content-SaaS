@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { WEBHOOK_TYPES, type WebhookType } from '@/lib/types/webhook';
 
 // n8n webhook configuration
 const N8N_WEBHOOK_URL = 'https://devwebhookn8n.ezequiellamas.com/webhook/f4914fae-9e10-442f-88bc-f80ee2a5f244';
@@ -65,7 +66,7 @@ export async function sendToN8NWithRetry(
       console.log('n8n webhook success:', result);
       
       // Log successful webhook call
-      await logWebhookCall(idempotencyKey, 'outgoing', 'n8n_video_generation', 200, payload, result);
+      await logWebhookCall(idempotencyKey, 'outgoing', WEBHOOK_TYPES.VIDEO_GENERATION_REQUEST, 200, payload, result);
       
       return {
         success: true,
@@ -80,7 +81,7 @@ export async function sendToN8NWithRetry(
       await logWebhookCall(
         idempotencyKey, 
         'outgoing', 
-        'n8n_video_generation', 
+        WEBHOOK_TYPES.VIDEO_GENERATION_REQUEST, 
         error.status || 500, 
         payload, 
         null, 
@@ -107,11 +108,14 @@ export async function sendToN8NWithRetry(
 async function logWebhookCall(
   idempotencyKey: string,
   direction: 'incoming' | 'outgoing',
-  eventType: string,
+  eventType: WebhookType,
   status: number,
   payload: any,
   responseData: any = null,
-  error: string | null = null
+  error: string | null = null,
+  executionTimeMs?: number,
+  requestSizeBytes?: number,
+  requestId?: string
 ): Promise<void> {
   try {
     const { error: logError } = await supabase
@@ -123,7 +127,10 @@ async function logWebhookCall(
         payload,
         response_data: responseData,
         error,
+        execution_time_ms: executionTimeMs,
+        request_size_bytes: requestSizeBytes,
         idempotency_key: idempotencyKey,
+        request_id: requestId,
         provider: 'n8n',
       });
 

@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Send, Upload, Play, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { WEBHOOK_TYPES } from '@/lib/types/webhook';
 
 interface MockPayload {
   request_id: string;
@@ -132,6 +133,17 @@ export function WebhookSimulator() {
       const payload = buildPayload();
 
       console.log('Sending webhook payload:', payload);
+
+      // Log outgoing webhook from admin panel
+      await supabase.from('webhook_logs').insert({
+        direction: 'outgoing',
+        event_type: WEBHOOK_TYPES.ADMIN_TEST,
+        status: 0, // Will be updated after response
+        payload: JSON.parse(JSON.stringify(payload)), // Ensure JSON compatibility
+        provider: 'admin_simulator',
+        idempotency_key: crypto.randomUUID(),
+        request_id: payload.request_id
+      });
 
       const { data, error } = await supabase.functions.invoke('receive_video_webhook', {
         body: payload

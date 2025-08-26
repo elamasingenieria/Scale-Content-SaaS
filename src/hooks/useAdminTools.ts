@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { WEBHOOK_TYPES } from '@/lib/types/webhook';
 
 export const useAdminTools = () => {
   const { toast } = useToast();
@@ -52,16 +53,87 @@ export const useAdminTools = () => {
   const sendN8n = useCallback(async () => {
     const n8nUrl = "https://devwebhookn8n.ezequiellamas.com/webhook/f4914fae-9e10-442f-88bc-f80ee2a5f244";
     
+    if (!n8nBody.trim()) {
+      toast({
+        title: 'Error',
+        description: 'El cuerpo del webhook no puede estar vacío',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    let parsedBody;
+    try {
+      parsedBody = JSON.parse(n8nBody);
+    } catch {
+      toast({
+        title: 'Error',
+        description: 'El JSON no es válido',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    const idempotencyKey = crypto.randomUUID();
+    const startTime = Date.now();
+    
     try {
       setN8nLoading(true);
+      const requestSizeBytes = new TextEncoder().encode(n8nBody).length;
+
+      // Log outgoing webhook
+      await supabase.from('webhook_logs').insert({
+        direction: 'outgoing',
+        event_type: WEBHOOK_TYPES.ADMIN_TEST,
+        status: 0, // Will be updated after response
+        payload: parsedBody,
+        provider: 'admin_panel',
+        idempotency_key: idempotencyKey,
+        request_size_bytes: requestSizeBytes
+      });
+
       const res = await fetch(n8nUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "X-Contract-Version": "1",
+          "Idempotency-Key": idempotencyKey
+        },
         body: n8nBody,
       });
-      toast({ title: `n8n: ${res.status}`, description: await res.text() });
+
+      const executionTime = Date.now() - startTime;
+      const responseText = await res.text();
+
+      // Update webhook log with response
+      await supabase.from('webhook_logs').update({
+        status: res.status,
+        response_data: responseText,
+        execution_time_ms: executionTime
+      }).eq('idempotency_key', idempotencyKey);
+
+      toast({ 
+        title: `n8n webhook: ${res.status}`, 
+        description: responseText || 'Enviado correctamente'
+      });
+      
     } catch (e: any) {
-      toast({ title: "Error n8n", description: e.message || String(e), variant: "destructive" });
+      const executionTime = Date.now() - startTime;
+      
+      // Log error
+      try {
+        await supabase.from('webhook_logs').update({
+          error: e.message,
+          status: 500,
+          execution_time_ms: executionTime
+        }).eq('idempotency_key', idempotencyKey);
+      } catch {}
+
+      toast({ 
+        title: "Error n8n", 
+        description: e.message || String(e), 
+        variant: "destructive" 
+      });
     } finally {
       setN8nLoading(false);
     }

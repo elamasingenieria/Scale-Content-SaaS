@@ -12,6 +12,39 @@ const supabase = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 );
 
+// Helper function to log webhook calls
+async function logWebhookCall(
+  supabase: any,
+  direction: 'incoming' | 'outgoing',
+  eventType: string,
+  status: number,
+  payload: any,
+  responseData?: any,
+  error?: string,
+  executionTimeMs?: number,
+  requestSizeBytes?: number,
+  idempotencyKey?: string,
+  requestId?: string
+) {
+  try {
+    await supabase.from('webhook_logs').insert({
+      direction,
+      event_type: eventType,
+      status,
+      payload,
+      response_data: responseData,
+      error,
+      execution_time_ms: executionTimeMs,
+      request_size_bytes: requestSizeBytes,
+      idempotency_key: idempotencyKey,
+      request_id: requestId,
+      provider: 'n8n'
+    });
+  } catch (logError) {
+    console.error('Failed to log webhook call:', logError);
+  }
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -96,7 +129,10 @@ serve(async (req) => {
       created_at: new Date().toISOString()
     };
 
-    // Send to n8n (don't await to avoid blocking the response)
+    // Send to n8n with proper logging
+    const startTime = Date.now();
+    const requestSizeBytes = new TextEncoder().encode(JSON.stringify(n8nPayload)).length;
+    
     fetch(webhookUrl, {
       method: 'POST',
       headers: {
@@ -105,8 +141,44 @@ serve(async (req) => {
         'Idempotency-Key': idempotencyKey,
       },
       body: JSON.stringify(n8nPayload),
-    }).catch(err => {
+    }).then(async (response) => {
+      const executionTime = Date.now() - startTime;
+      const responseText = await response.text();
+      
+      // Log successful webhook
+      await logWebhookCall(
+        supabase,
+        'outgoing',
+        'video_generation_request',
+        response.status,
+        n8nPayload,
+        responseText ? JSON.parse(responseText) : null,
+        null,
+        executionTime,
+        requestSizeBytes,
+        idempotencyKey,
+        result.batch_id
+      );
+      
+      console.log(`n8n webhook sent successfully (${executionTime}ms):`, response.status);
+    }).catch(async (err) => {
+      const executionTime = Date.now() - startTime;
       console.error('Error sending to n8n webhook:', err);
+      
+      // Log failed webhook
+      await logWebhookCall(
+        supabase,
+        'outgoing', 
+        'video_generation_request',
+        0,
+        n8nPayload,
+        null,
+        err.message,
+        executionTime,
+        requestSizeBytes,
+        idempotencyKey,
+        result.batch_id
+      );
     });
 
     return new Response(JSON.stringify({ 
