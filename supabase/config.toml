@@ -3,6 +3,9 @@ project_id = "isgyytimeqyxyokarrds"
 [functions.create_video_request]
 verify_jwt = true
 
+[functions.approve_video]
+verify_jwt = true
+
 [functions.receive_video_webhook]
 verify_jwt = false
 
