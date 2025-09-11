@@ -88,6 +88,53 @@ export type Database = {
           },
         ]
       }
+      edited_videos: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_path: string
+          file_size: number | null
+          id: string
+          original_request_id: string
+          public_url: string | null
+          status: Database["public"]["Enums"]["edited_video_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          id?: string
+          original_request_id: string
+          public_url?: string | null
+          status?: Database["public"]["Enums"]["edited_video_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          original_request_id?: string
+          public_url?: string | null
+          status?: Database["public"]["Enums"]["edited_video_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edited_videos_original_request_id_fkey"
+            columns: ["original_request_id"]
+            isOneToOne: false
+            referencedRelation: "video_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount_cents: number
@@ -321,7 +368,7 @@ export type Database = {
           file_path: string
           file_type: string | null
           id: string
-          public_url: string
+          public_url: string | null
           request_id: string | null
           updated_at: string
           user_id: string
@@ -331,7 +378,7 @@ export type Database = {
           file_path: string
           file_type?: string | null
           id?: string
-          public_url: string
+          public_url?: string | null
           request_id?: string | null
           updated_at?: string
           user_id: string
@@ -341,7 +388,7 @@ export type Database = {
           file_path?: string
           file_type?: string | null
           id?: string
-          public_url?: string
+          public_url?: string | null
           request_id?: string | null
           updated_at?: string
           user_id?: string
@@ -543,7 +590,13 @@ export type Database = {
           failure_reason: string | null
           id: string
           last_webhook_received_at: string | null
+          pre_approval_status:
+            | Database["public"]["Enums"]["pre_approval_status"]
+            | null
+          pre_approved_at: string | null
+          pre_approved_by: string | null
           processing_started_at: string | null
+          rejection_reason: string | null
           status: Database["public"]["Enums"]["video_request_status"]
           updated_at: string
           user_id: string
@@ -554,7 +607,13 @@ export type Database = {
           failure_reason?: string | null
           id?: string
           last_webhook_received_at?: string | null
+          pre_approval_status?:
+            | Database["public"]["Enums"]["pre_approval_status"]
+            | null
+          pre_approved_at?: string | null
+          pre_approved_by?: string | null
           processing_started_at?: string | null
+          rejection_reason?: string | null
           status?: Database["public"]["Enums"]["video_request_status"]
           updated_at?: string
           user_id: string
@@ -565,7 +624,13 @@ export type Database = {
           failure_reason?: string | null
           id?: string
           last_webhook_received_at?: string | null
+          pre_approval_status?:
+            | Database["public"]["Enums"]["pre_approval_status"]
+            | null
+          pre_approved_at?: string | null
+          pre_approved_by?: string | null
           processing_started_at?: string | null
+          rejection_reason?: string | null
           status?: Database["public"]["Enums"]["video_request_status"]
           updated_at?: string
           user_id?: string
@@ -754,8 +819,10 @@ export type Database = {
         | "refund"
         | "manual_adjustment"
         | "admin_grant"
+      edited_video_status: "processing" | "ready"
       payment_kind: "subscription" | "purchase"
       payment_kind_enum: "subscription" | "one_off"
+      pre_approval_status: "pending" | "approved" | "rejected"
       social_platform:
         | "instagram"
         | "youtube"
@@ -924,8 +991,10 @@ export const Constants = {
         "manual_adjustment",
         "admin_grant",
       ],
+      edited_video_status: ["processing", "ready"],
       payment_kind: ["subscription", "purchase"],
       payment_kind_enum: ["subscription", "one_off"],
+      pre_approval_status: ["pending", "approved", "rejected"],
       social_platform: [
         "instagram",
         "youtube",
