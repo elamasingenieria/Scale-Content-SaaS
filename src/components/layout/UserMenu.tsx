@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
-import { User } from 'lucide-react';
+import { useState } from 'react';
+import { User, CreditCard, FileText, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import {
   DropdownMenu,
@@ -7,6 +7,9 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -79,11 +82,27 @@ const UserMenu = () => {
             Cambiar foto de perfil
           </DropdownMenuItem>
           
-          <DropdownMenuItem asChild>
-            <Link to="/billing">
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              <CreditCard className="mr-2 h-4 w-4" />
               Facturación
-            </Link>
-          </DropdownMenuItem>
+              <ChevronRight className="ml-auto h-4 w-4" />
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+              <DropdownMenuItem asChild>
+                <Link to="/billing">
+                  <CreditCard className="mr-2 h-4 w-4" />
+                  Planes y créditos
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/billing/history">
+                  <FileText className="mr-2 h-4 w-4" />
+                  Historial de pagos
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
           
           <DropdownMenuSeparator />
           

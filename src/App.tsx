@@ -10,6 +10,7 @@ import Videos from "./pages/Videos";
 import VideoDetail from "./pages/VideoDetail";
 import Branding from "./pages/Branding";
 import Billing from "./pages/Billing";
+import BillingHistory from "./pages/BillingHistory";
 import Login from "./pages/Login";
 import Admin from "./pages/Admin";
 import UGCScriptForm from "./pages/UGCScriptForm";
@@ -35,6 +36,7 @@ const App = () => (
           <Route path="/videos/:id" element={<RequireAuth><AppShell><VideoDetail /></AppShell></RequireAuth>} />
           <Route path="/branding" element={<RequireAuth><AppShell><Branding /></AppShell></RequireAuth>} />
           <Route path="/billing" element={<RequireAuth><AppShell><Billing /></AppShell></RequireAuth>} />
+          <Route path="/billing/history" element={<RequireAuth><AppShell><BillingHistory /></AppShell></RequireAuth>} />
           <Route path="/formularios" element={<RequireAuth><AppShell><Formularios /></AppShell></RequireAuth>} />
           {/* Keep old routes for backward compatibility */}
           <Route path="/ugc-script-form" element={<RequireAuth><AppShell><UGCScriptForm /></AppShell></RequireAuth>} />

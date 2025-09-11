@@ -40,7 +40,6 @@ const AppShell = ({
             <NavLink to="/videos" className={navLinkClass}>Videos</NavLink>
             <NavLink to="/formularios" className={navLinkClass}>Formularios</NavLink>
             <NavLink to="/branding" className={navLinkClass}>Branding</NavLink>
-            <NavLink to="/billing" className={navLinkClass}>Billing</NavLink>
             {isAdmin && <NavLink to="/admin" className={navLinkClass}>Admin</NavLink>}
           </nav>
           <div className="flex items-center gap-3">
